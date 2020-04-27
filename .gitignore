@@ -11,3 +11,5 @@ CMakeSettings.json
 cmake-build-*
 
 frontend/replay/*
+*.vcxproj*
+bin/
