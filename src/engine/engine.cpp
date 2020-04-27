@@ -287,6 +287,7 @@ namespace CityFlow {
             while (vehicleItr != vehicles.end()) {
                 Vehicle *vehicle = *vehicleItr;
 
+                // 移除驶出drivable的车辆
                 if ((vehicle->getChangedDrivable()) != nullptr || vehicle->hasSetEnd()) {
                     vehicleItr = vehicles.erase(vehicleItr);
                 }else{
@@ -296,12 +297,12 @@ namespace CityFlow {
                 if (vehicle->hasSetEnd()) {
                     std::lock_guard<std::mutex> guard(lock);
                     vehicleRemoveBuffer.insert(vehicle);
-                    if (!vehicle->getLaneChange()->hasFinished()) {
+                    if (!vehicle->getLaneChange()->hasFinished()) { // 不是变道导致结束，即开到终点
                         vehicleMap.erase(vehicle->getId());
                         finishedVehicleCnt += 1;
                         cumulativeTravelTime += getCurrentTime() - vehicle->getEnterTime();
                     }
-                    auto iter = vehiclePool.find(vehicle->getPriority());
+                    auto iter = vehiclePool.find(vehicle->getPriority()); // 删除车辆
                     threadVehiclePool[iter->second.second].erase(vehicle);
 //                    assert(vehicle->getPartner() == nullptr);
                     delete vehicle;
@@ -327,7 +328,12 @@ namespace CityFlow {
                 const auto &crosses = laneLink->getCrosses();
                 auto rIter = crosses.rbegin();
 
+                // 由于交点已经排序，现在交点从远到近枚举
+                // 最先开到下一道的车，然后会压点的车，然后直接使用前一lane的头车
+                // 三种情况车头经过距离从远到近
+
                 // first check the vehicle on the end lane
+                // 刚开出lanelink的车屁股是否距离cross交点前方至少leaveDistance的距离。
                 Vehicle *vehicle = laneLink->getEndLane()->getLastVehicle();
                 if (vehicle && static_cast<LaneLink *>(vehicle->getPrevDrivable()) == laneLink) {
                     double vehDistance = vehicle->getDistance() - vehicle->getLen();
@@ -421,7 +427,7 @@ namespace CityFlow {
                 }
 
                 vehicle->update();
-                vehicle->clearSignal();
+                vehicle->clearSignal(); // 由于影子车辆已经加好所以清空recvSignal。未成功开始变道也清除。
             }
         endBarrier.wait();
     }
@@ -799,7 +805,7 @@ namespace CityFlow {
             // Insert a shadow vehicle
             if (v->planLaneChange() && v->canChange() && !v->isChanging()) {
                 std::shared_ptr<LaneChange> lc = v->getLaneChange();
-                if (lc->isGapValid() && v->getCurDrivable()->isLane()) {
+                if (lc->isGapValid() && v->getCurDrivable()->isLane()) { // 如果不在路口且前后距离合理就变道
 //                    std::cerr << getCurrentTime() <<" " << v->getId() << " dis: "<< v->getDistance() <<" Can Change from "
 //                              << ((Lane*)v->getCurDrivable())->getId()<< " to " << lc->getTarget()->getId() << std::endl;
                 insertShadow(v);

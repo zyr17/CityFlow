@@ -35,6 +35,7 @@ namespace CityFlow {
         return length;
     }
 
+    // 得到p1往p2方向走a%的距离的点
     Point RoadNet::getPoint(const Point &p1, const Point &p2, double a) {
         return Point((p2.x - p1.x) * a + p1.x, (p2.y - p1.y) * a + p1.y);
     }
@@ -209,7 +210,7 @@ namespace CityFlow {
                                 laneLink.points.emplace_back(getJsonMember<double>("x", pValue),
                                                              getJsonMember<double>("y", pValue));
                             }
-                        else {
+                        else { // 未给出轨迹，按照道路方向和车道自动规划
                             Point start = Point(startLane->getPointByDistance(
                                     startLane->getLength() - startLane->getEndIntersection()->width));
                             Point end = Point(
@@ -459,6 +460,7 @@ namespace CityFlow {
 
         assert(roadPoints.size() >= 2);
 
+        // 如果这个路口是虚拟的，把它缩进道路中来
         if (!startIntersection->isVirtualIntersection()) {
             double width = startIntersection->width;
             Point p1 = roadPoints[0];
@@ -532,7 +534,7 @@ namespace CityFlow {
                     for (int ib = 0; ib + 1 < (int) vb.size(); ib++) {
                         Point A1 = va[ia], A2 = va[ia + 1];
                         Point B1 = vb[ib], B2 = vb[ib + 1];
-                        if (Point::sign(crossMultiply(A2 - A1, B2 - B1)) == 0) continue;
+                        if (Point::sign(crossMultiply(A2 - A1, B2 - B1)) == 0) continue; // BUG: 平行线也可能有相交
                         Point P = calcIntersectPoint(A1, A2, B1, B2);
                         if (onSegment(A1, A2, P) && onSegment(B1, B2, P)) {
                             Cross cross;
@@ -550,9 +552,9 @@ namespace CityFlow {
                             double c2 = w2 / sin(cross.ang);
                             double diag = (c1 * c1 + c2 * c2 + 2 * c1 * c2 * cos(cross.ang)) / 4;
                             cross.safeDistances[0] = sqrt(diag - w2 * w2 / 4);
-                            cross.safeDistances[1] = sqrt(diag - w1 * w1 / 4);
+                            cross.safeDistances[1] = sqrt(diag - w1 * w1 / 4); // TODO:算的是个啥？
                             this->crosses.push_back(cross);
-                            goto FOUND;
+                            goto FOUND; // BUG：不考虑多次相交？
                         }
                         disb += (vb[ib + 1] - vb[ib]).len();
                     }
@@ -571,7 +573,7 @@ FOUND:;
                 double da = ca->distanceOnLane[ca->laneLinks[0] != laneLink];
                 double db = cb->distanceOnLane[cb->laneLinks[0] != laneLink];
                 return da < db;
-            });
+            }); // 排序，交点从近往远排
         }
     }
 
@@ -610,50 +612,53 @@ FOUND:;
         RoadLinkType t2 = laneLinks[1 - i]->getRoadLinkType();
         double d1 = distanceOnLane[i] - distanceToLaneLinkStart, d2 = notifyDistances[1 - i];
 
-        if (foeVehicle == nullptr) return true;
+        if (foeVehicle == nullptr) return true; // 如果没有对应车辆
 
+        // 如果这个距离不能等(已经压着点，或者到点前刹不住)就通过
         if (!vehicle->canYield(d1)) return true;
 
-        int yield = 0;
-        if (!foeVehicle->canYield(d2)) yield = 1;
+        int yield = 0; // 0还没算好，-1可以通过，1不能通过
+        if (!foeVehicle->canYield(d2)) yield = 1; // 如果对面车不能等就不通过
 
         if (yield == 0) {
-            if (t1 > t2) {
+            if (t1 > t2) { // 优先度，直行>左转>右转，更优先通过
                 yield = -1;
             } else if (t1 < t2) {
-                if (d2 > 0) {
+                if (d2 > 0) { // 优先度低，对面没进点
                     // todo: can be improved, check if higher priority vehicle is blocked by other vehicles, hard!
                     int foeVehicleReachSteps = foeVehicle->getReachStepsOnLaneLink(d2, laneLinks[1 - i]);
                     int reachSteps = vehicle->getReachStepsOnLaneLink(d1, laneLinks[i]);
-                    if (foeVehicleReachSteps > reachSteps) {
+                    if (foeVehicleReachSteps > reachSteps) { // 对面进点更慢，通过
                         yield = -1;
                     }
                 } else {
-                    if (d2 + foeVehicle->getLen() < 0) {
+                    if (d2 + foeVehicle->getLen() < 0) { // 无用判断，车长还能负的？
                         yield = -1;
                     }
                 }
                 if (yield == 0) yield = 1;
-            } else {
-                if (d2 > 0) {
+            } else { // 优先度相同
+                if (d2 > 0) { // 对面没进点
                     int foeVehicleReachSteps = foeVehicle->getReachStepsOnLaneLink(d2, laneLinks[1 - i]);
                     int reachSteps = vehicle->getReachStepsOnLaneLink(d1, laneLinks[i]);
-                    if (foeVehicleReachSteps > reachSteps) {
+                    if (foeVehicleReachSteps > reachSteps) { // 对面进点慢，通过
                         yield = -1;
-                    } else if (foeVehicleReachSteps < reachSteps) {
+                    } else if (foeVehicleReachSteps < reachSteps) { // 我们进点慢，不通过
                         yield = 1;
                     } else {
                         if (vehicle->getEnterLaneLinkTime() == foeVehicle->getEnterLaneLinkTime()) {
                             if (d1 == d2) {
+                                // 啥都一样，priority
                                 yield = vehicle->getPriority() > foeVehicle->getPriority() ? -1 : 1;
                             } else {
-                                yield = d1 < d2 ? -1 : 1;
+                                yield = d1 < d2 ? -1 : 1; // 距离小的优先走
                             }
                         } else {
+                            // 谁进弯早谁走
                             yield = vehicle->getEnterLaneLinkTime() < foeVehicle->getEnterLaneLinkTime() ? -1 : 1;
                         }
                     }
-                } else {
+                } else { // 对面进点了，对面已压点开没压不开 BUG:?
                     yield = d2 + foeVehicle->getLen() < 0 ? -1 : 1;
                 }
             }
@@ -667,6 +672,7 @@ FOUND:;
                 fastPointer = fastPointer->getBlocker()->getBlocker();
                 if (slowPointer == fastPointer) {
                     // deadlock detected
+                    // 死锁检测，要对面开对面死锁了，那么能开
                     yield = -1;
                     break;
                 }
@@ -769,14 +775,14 @@ FOUND:;
              */
             double roadWidth = road->getWidth();
             double deltaWidth = 0.5 * min2double(width, roadWidth);
-            deltaWidth = max2double(deltaWidth, 5);
+            deltaWidth = max2double(deltaWidth, 5); // TODO:为什么要限制最大5
 
             Point pointA = getPosition() -  roadDirect * width;
             Point pointB  = pointA - pDirect * roadWidth;
             points.push_back(pointA);
             points.push_back(pointB);
 
-            if (deltaWidth < road->averageLength()) {
+            if (deltaWidth < road->averageLength()) { // TODO?
                 Point pointA1 = pointA - roadDirect * deltaWidth;
                 Point pointB1 = pointB - roadDirect * deltaWidth;
                 points.push_back(pointA1);

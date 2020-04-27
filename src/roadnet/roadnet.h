@@ -53,12 +53,12 @@ namespace CityFlow {
         void insertVehicle(std::list<Vehicle *> ::iterator &vehicle);
 
     private:
-        size_t index = 0;
+        size_t index = 0; // 所属车道的第几个Segment
         Lane *belongLane = nullptr;
-        double startPos = 0;
+        double startPos = 0; // 从起始点开始，距离startPos和endPos之间
         double endPos = 0;
         std::list<std::list<Vehicle *>::iterator> vehicles;
-        std::list<Vehicle *>::iterator prev_vehicle_iter;
+        std::list<Vehicle *>::iterator prev_vehicle_iter; // not used
     };
 
     class Intersection {
@@ -72,16 +72,16 @@ namespace CityFlow {
 
     private:
         std::string id;
-        bool isVirtual;
+        bool isVirtual; // 虚拟路口，道路连接唯一，即边界路口。TODO:虚拟路口能不能开车？
         double width = 0.0;
         Point point;
         TrafficLight trafficLight;
         std::vector<Road *> roads;
         std::vector<RoadLink> roadLinks;
-        std::vector<Cross> crosses;
-        std::vector<LaneLink *> laneLinks;
+        std::vector<Cross> crosses; // 该路口的laneLinks发生相交的交点信息
+        std::vector<LaneLink *> laneLinks; // 该路口所有laneLinks
 
-        void initCrosses();
+        void initCrosses(); // 查找交点。对于平行线，多次相交以及safeDistance计算有问题
 
     public:
         std::string getId() const { return this->id; }
@@ -106,9 +106,9 @@ namespace CityFlow {
 
         void reset();
 
-        std::vector<Point> getOutline();
+        std::vector<Point> getOutline(); // 得到该路口的凸包
 
-        bool isImplicitIntersection();
+        bool isImplicitIntersection(); // 没有有效红绿灯控制
 
         const Point &getPosition() const { return point; }
     };
@@ -119,19 +119,21 @@ namespace CityFlow {
         friend class Intersection;
 
     private:
-        LaneLink *laneLinks[2];
-        Vehicle *notifyVehicles[2];
-        double notifyDistances[2];
-        double distanceOnLane[2];
-        double leaveDistance = 0, arriveDistance = 30; // TODO
-        double ang;
-        double safeDistances[2];
+        LaneLink *laneLinks[2]; // 相交的两条laneLink
+        Vehicle *notifyVehicles[2]; // TODO
+        double notifyDistances[2]; // 交点 - 阻拦车的车头
+        double distanceOnLane[2]; // 交点距离laneLink出发的长度
+        // 刚开出lanelink的车尾需要距离交点前方至少leaveDistance的距离否则认为有干扰
+        double leaveDistance = 0, arriveDistance = 30;
+        double ang; // 相交角度
+        double safeDistances[2]; // 安全距离，防止撞车
 
     public:
         double getLeaveDistance() const { return leaveDistance; }
 
         double getArriveDistance() const { return arriveDistance; }
 
+        // 设置某条路的车辆做提示
         void notify(LaneLink *laneLink, Vehicle *vehicle, double notifyDistance);
 
         bool canPass(const Vehicle *vehicle, const LaneLink *laneLink,
@@ -139,6 +141,7 @@ namespace CityFlow {
 
         void clearNotify() { notifyVehicles[0] = notifyVehicles[1] = nullptr; }
 
+        // 得到相对阻拦的车辆，另一条道上的车辆
         Vehicle *getFoeVehicle(const LaneLink *laneLink) const {
             assert(laneLink == laneLinks[0] || laneLink == laneLinks[1]);
             return laneLink == laneLinks[0] ? notifyVehicles[1] : notifyVehicles[0];
@@ -167,7 +170,7 @@ namespace CityFlow {
 
         LaneLink *getLaneLink(int i) const { return laneLinks[i]; }
 
-        void reset();
+        void reset(); // empty
     };
 
     class Road {
@@ -180,13 +183,13 @@ namespace CityFlow {
         Intersection *startIntersection = nullptr;
         Intersection *endIntersection = nullptr;
         std::vector<Lane> lanes;
-        std::vector<Point> points;
+        std::vector<Point> points; // 起点到终点依次的点顺序
 
         std::vector<Lane *> lanePointers;
 
-        std::vector<Vehicle *> planRouteBuffer;
+        std::vector<Vehicle *> planRouteBuffer; // 准备规划路径的车辆
 
-        void initLanesPoints();
+        void initLanesPoints(); // 设置每条车道的点
 
     public:
         std::string getId() const { return id; }
@@ -203,7 +206,7 @@ namespace CityFlow {
 
         void buildSegmentationByInterval(double interval);
 
-        bool connectedToRoad(const Road * road) const;
+        bool connectedToRoad(const Road * road) const; // 是否有任一车道和其他路段相连
 
         void reset();
 
@@ -285,7 +288,7 @@ namespace CityFlow {
             vehicles.push_back(vehicle);
         }
 
-        void popVehicle() { vehicles.pop_front(); }
+        void popVehicle() { vehicles.pop_front(); } // 弹出车辆使用移除指针元素的方式
 
         virtual std::string getId() const = 0;
     };
@@ -297,7 +300,7 @@ namespace CityFlow {
         friend class Archive;
 
     private:
-        int laneIndex;
+        int laneIndex; // 第几道，小在内大在外
         std::vector<Segment> segments;
         std::vector<LaneLink *> laneLinks;
         Road *belongRoad = nullptr;
@@ -328,7 +331,7 @@ namespace CityFlow {
 
         bool available(const Vehicle *vehicle) const;
 
-        bool canEnter(const Vehicle *vehicle) const;
+        bool canEnter(const Vehicle *vehicle) const; //该车道是否能够进入
 
         size_t getLaneIndex() const { return this->laneIndex; }
 
@@ -381,6 +384,7 @@ namespace CityFlow {
 
         size_t getSegmentNum() const{ return segments.size(); }
 
+        // 在Lane上面开了dis~deltaDis+dis距离的车辆
         std::vector<Vehicle*> getVehiclesBeforeDistance(double dis, size_t segmentIndex, double deltaDis = 50);
 
         /* history */

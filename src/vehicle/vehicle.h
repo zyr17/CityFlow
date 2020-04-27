@@ -39,8 +39,8 @@ namespace CityFlow {
         double minGap = 2;
         double maxSpeed = 16.66667;
         double headwayTime = 1;
-        double yieldDistance = 5;
-        double turnSpeed = 8.3333;
+        double yieldDistance = 5; // 判断要等车时，刹住后和指定位置留出的空隙
+        double turnSpeed = 8.3333; // 转向时速度。无法设置更改
         std::shared_ptr<const Route> route = nullptr;
     };
 
@@ -51,7 +51,7 @@ namespace CityFlow {
         friend class SimpleLaneChange;
         friend class Archive;
     private:
-        struct Buffer {
+        struct Buffer { // 缓存变化情况，并在update的时候对主数据更新
             bool isDisSet = false;
             bool isSpeedSet = false;
             bool isDrivableSet = false;
@@ -60,21 +60,21 @@ namespace CityFlow {
             bool isEnterLaneLinkTimeSet = false;
             bool isBlockerSet = false;
             bool isCustomSpeedSet = false;
-            double dis;
-            double deltaDis;
-            double speed;
-            double customSpeed;
-            Drivable *drivable;
-            std::vector<Vehicle *> notifiedVehicles;
-            bool end;
-            Vehicle *blocker = nullptr;
+            double dis; // 在现在路上开了多少距离
+            double deltaDis; // deltaDis什么距离，用处不明
+            double speed; // 当前速度
+            double customSpeed; // 设定速度
+            Drivable *drivable; // 当前所在的Drivable
+            std::vector<Vehicle *> notifiedVehicles; // 没用过
+            bool end; // 当车辆开到终点；或是变道成功取消，表示该车已经结束行驶需要移除
+            Vehicle *blocker = nullptr; // 阻拦者。在路口两条lanelink相交时受到另一条车辆阻拦
             size_t enterLaneLinkTime;
         };
 
         struct LaneChangeInfo {
             short partnerType = 0; //0 for no partner; 1 for real vehicle; 2 for shadow vehicle;
             Vehicle *partner = nullptr;
-            double offset = 0;
+            double offset = 0; // 变道的车辆已经相对原来车道位移了多少
             size_t segmentIndex = 0;
         };
 
@@ -100,7 +100,7 @@ namespace CityFlow {
 
         Buffer buffer;
 
-        int priority;
+        int priority; // 和变道信号相关的优先级，初始化时分配独立随机整数，越大变道越优先
         std::string id;
         double enterTime;
 
@@ -108,7 +108,7 @@ namespace CityFlow {
 
         std::shared_ptr<LaneChange> laneChange;
 
-        bool routeValid = false;
+        bool routeValid = false; // 是否存在合法路径。不存在该车在Engine::planRoute中会被移除
         Flow *flow;
 
     public:
@@ -121,7 +121,8 @@ namespace CityFlow {
 
         Vehicle(const VehicleInfo &init, const std::string &id, Engine *engine, Flow *flow = nullptr);
 
-        void setDeltaDistance(double dis);
+        /* 均更新buffer数据。通过update真正更新 */
+        void setDeltaDistance(double dis); // 往前开dis距离
 
         void setSpeed(double speed);
 
@@ -170,8 +171,9 @@ namespace CityFlow {
         }
 
         double getBufferDis() const { return buffer.dis; }
+        /*****/
 
-        void update();
+        void update(); // buffer数据应用
 
         void setPriority(int priority) { this->priority = priority; }
 
@@ -222,11 +224,11 @@ namespace CityFlow {
 
         inline int getPriority() const { return priority; }
 
-        std::pair<Point, Point> getCurPos() const;
+        std::pair<Point, Point> getCurPos() const; // 位置，包含长宽的朝向
 
         ControlInfo getNextSpeed(double interval);
 
-        Drivable *getChangedDrivable() const;
+        Drivable *getChangedDrivable() const; // buffer中的即将到的Drivable
 
         double getEnterTime() const { return enterTime; }
 
@@ -234,28 +236,29 @@ namespace CityFlow {
 
         bool isIntersectionRelated();
 
-        double getBrakeDistanceAfterAccel(double acc, double dec, double interval) const;
+        double getBrakeDistanceAfterAccel(double acc, double dec, double interval) const; // 在加速interval后减速共计距离
 
         inline double getMinBrakeDistance() const { return 0.5 * vehicleInfo.speed * vehicleInfo.speed / vehicleInfo.maxNegAcc; }
 
         inline double getUsualBrakeDistance() const { return 0.5 * vehicleInfo.speed * vehicleInfo.speed / vehicleInfo.usualNegAcc; }
 
+        // 不碰撞所需速度。input为 leader_v, leader_acc, self_v, self_acc, now_gap, interval, min_gap
         double getNoCollisionSpeed(double vL, double dL, double vF, double dF, double gap, double interval,
             double targetGap) const;
 
-        double getCarFollowSpeed(double interval);
+        double getCarFollowSpeed(double interval); // 跟车速度。不碰撞、保持安全距离
 
-        double getStopBeforeSpeed(double distance, double interval) const;
+        double getStopBeforeSpeed(double distance, double interval) const; // 在interval后停在distance，下个时刻该有的速度
 
-        int getReachSteps(double distance, double targetSpeed, double acc) const;
+        int getReachSteps(double distance, double targetSpeed, double acc) const; // 通过distance距离还要多久
 
         int getReachStepsOnLaneLink(double distance, LaneLink* laneLink) const;
 
-        double getDistanceUntilSpeed(double speed, double acc) const;
+        double getDistanceUntilSpeed(double speed, double acc) const; // 还要多久加速到指定速度
 
-        bool canYield(double dist) const;
+        bool canYield(double dist) const; // 大于零，能不能按时刹车；小于零，这个距离会不会已被追尾
 
-        void updateLeaderAndGap(Vehicle *leader);
+        void updateLeaderAndGap(Vehicle *leader); // 更新前方车辆和车距
 
         Vehicle *getLeader() const { return controllerInfo.leader; }
 
@@ -267,7 +270,7 @@ namespace CityFlow {
 
         inline double getApproachingIntersectionDistance() const { return 0.0; }
 
-        double getIntersectionRelatedSpeed(double interval);
+        double getIntersectionRelatedSpeed(double interval); // 在路口根据信号灯等情况选择车速
 
         inline bool isRunning() const { return controllerInfo.running; }
 
@@ -287,7 +290,7 @@ namespace CityFlow {
 
         void setLane(Lane *nextLane);
 
-        void finishChanging();
+        void finishChanging(); // 结束变道，标记end
 
         inline void setOffset(double offset) { laneChangeInfo.offset = offset; }
 
@@ -316,7 +319,7 @@ namespace CityFlow {
 
         std::shared_ptr<LaneChange> getLaneChange(){ return laneChange; }
 
-        std::list<Vehicle *>::iterator getListIterator();
+        std::list<Vehicle *>::iterator getListIterator(); // 这辆车在所在的Segment的迭代器
 
         void insertShadow(Vehicle *shadow) { laneChange->insertShadow(shadow); }
 
@@ -344,6 +347,7 @@ namespace CityFlow {
 
         bool isChanging() const { return laneChange->changing; }
 
+        // 变道车道和所在车道宽度和的一半。当位移到达该级别后就能结束位移
         double getMaxOffset() const {
             auto target = laneChange->signalSend->target;
             return (target->getWidth() + getCurLane()->getWidth()) / 2;

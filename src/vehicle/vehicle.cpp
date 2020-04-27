@@ -47,7 +47,7 @@ namespace CityFlow {
     }
 
     void Vehicle::setDeltaDistance(double dis) {
-        if (!buffer.isDisSet || dis < buffer.deltaDis) {
+        if (!buffer.isDisSet || dis < buffer.deltaDis) { // BUG: 后半比较有什么用？
             unSetEnd();
             unSetDrivable();
             buffer.deltaDis = dis;
@@ -322,7 +322,7 @@ namespace CityFlow {
 
         if (laneChange){
             v = min2double(v, laneChange->yieldSpeed(interval));
-            if (!controllerInfo.router.onValidLane()) {
+            if (!controllerInfo.router.onValidLane()) { // TODO:不在合理车道就降速到不碰撞速度？0 1又指什么？
                 double vn = getNoCollisionSpeed(0,1,getSpeed(), getMaxNegAcc(), getCurDrivable()->getLength() - getDistance(), interval, getMinGap());
                 v = min2double(v, vn);
             }

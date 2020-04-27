@@ -40,7 +40,7 @@ namespace CityFlow {
     Point operator-(const Point &A);
     double crossMultiply(const Point &A, const Point &B);
     double dotMultiply(const Point &A, const Point &B);
-    double calcAng(Point A, Point B);
+    double calcAng(Point A, Point B); // BUG: 算的什么鬼 TODO到底算的什么。两点不考虑方向最小夹角，即0<=ret<=pi/2
 
     Point calcIntersectPoint(Point A, Point B, Point C, Point D);
     bool onSegment(Point A, Point B, Point P);

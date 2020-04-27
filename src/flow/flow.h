@@ -17,14 +17,14 @@ namespace CityFlow {
         VehicleInfo vehicleTemplate;
         std::shared_ptr<const Route> route;
         double interval;
-        double nowTime = 0;
-        double currentTime = 0;
+        double nowTime = 0; // 距离上次产生车辆时间。最开始初始化为interval，到时刻以后每经过interval时间就产生车辆。
+        double currentTime = 0; // 真实模拟时间
         int startTime = 0;
         int endTime = -1;
-        int cnt = 0;
+        int cnt = 0; // 计数器，nextStep时会+1，保持生成车辆名称不重复
         Engine *engine;
         std::string id;
-        bool valid = true;
+        bool valid = true; // 路径是否合法
 
     public:
         Flow(const VehicleInfo &vehicleTemplate, double timeInterval,
