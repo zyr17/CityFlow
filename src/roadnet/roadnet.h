@@ -72,7 +72,7 @@ namespace CityFlow {
 
     private:
         std::string id;
-        bool isVirtual; // 虚拟路口，道路连接唯一，即边界路口。TODO:虚拟路口能不能开车？
+        bool isVirtual; // 虚拟路口，忽略道路连接、信号灯等，为地图边界无法开向其他方向
         double width = 0.0;
         Point point;
         TrafficLight trafficLight;
