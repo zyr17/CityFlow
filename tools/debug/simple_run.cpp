@@ -26,9 +26,13 @@ int main(int argc, char const *argv[]) {
             .default_value(1)
             .mode(optionparser::StorageMode::STORE_VALUE);
 
+    parser.add_option("--dataDir", "-d")
+            .help("data directory")
+            .default_value("./")
+            .mode(optionparser::StorageMode::STORE_VALUE);
+
     parser.add_option("--verbose", "-v")
             .help("be verbose")
-            .default_value(false)
             .mode(optionparser::StorageMode::STORE_TRUE);
 
     parser.eat_arguments(argc, argv);
@@ -36,8 +40,7 @@ int main(int argc, char const *argv[]) {
     bool verbose = parser.get_value<bool>("verbose");
     size_t totalStep = parser.get_value<int>("totalStep");
     size_t threadNum = parser.get_value<int>("threadNum");
-
-    std::string dataDir(std::getenv("DATADIR"));
+    std::string dataDir = parser.get_value<std::string>("dataDir");
 
     Engine engine(dataDir + configFile, (size_t) threadNum);
     time_t startTime, endTime;
