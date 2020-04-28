@@ -219,19 +219,10 @@ namespace CityFlow {
                                     startLane->getLength() - startLane->getEndIntersection()->width);
                             Point endDirection = endLane->getDirectionByDistance(
                                     0.0 + endLane->getStartIntersection()->width);
-                            double minGap = 5;
                             double gap1X = startDirection.x * len * 0.5;
                             double gap1Y = startDirection.y * len * 0.5;
                             double gap2X = -endDirection.x * len * 0.5;
                             double gap2Y = -endDirection.y * len * 0.5;
-                            if (gap1X * gap1X + gap1Y * gap1Y < 25 && startLane->getEndIntersection()->width >= 5) {
-                                gap1X = minGap * startDirection.x;
-                                gap1Y = minGap * startDirection.y;
-                            }
-                            if (gap2X * gap2X + gap2Y * gap2Y < 25 && endLane->getStartIntersection()->width >= 5) {
-                                gap2X = minGap * endDirection.x;
-                                gap2Y = minGap * endDirection.y;
-                            }
                             Point mid1 = Point(start.x + gap1X,start.y + gap1Y);
                             Point mid2 = Point(end.x + gap2X,end.y + gap2Y);
                             int numPoints = 10;
