@@ -28,7 +28,6 @@ int main(int argc, char const *argv[]) {
 
     parser.add_option("--verbose", "-v")
             .help("be verbose")
-            .default_value(false)
             .mode(optionparser::StorageMode::STORE_TRUE);
 
     parser.eat_arguments(argc, argv);
