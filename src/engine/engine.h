@@ -15,6 +15,8 @@
 
 namespace CityFlow {
 
+    const double MIN_OFFSET_SPEED = 1;
+
     class Engine {
         friend class Archive;
     private:

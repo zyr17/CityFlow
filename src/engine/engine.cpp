@@ -229,7 +229,7 @@ namespace CityFlow {
                 assert(vehicle.isReal());
 
                 int dir = vehicle.getLaneChangeDirection();
-                double newOffset = fabs(vehicle.getOffset() + max2double(0.2 * nextSpeed, 1) * interval * dir);
+                double newOffset = fabs(vehicle.getOffset() + max2double(0.2 * nextSpeed, MIN_OFFSET_SPEED) * interval * dir);
                 newOffset = min2double(newOffset, vehicle.getMaxOffset());
                 vehicle.setOffset(newOffset * dir);
 

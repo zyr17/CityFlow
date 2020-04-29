@@ -313,8 +313,13 @@ namespace CityFlow {
 
         v = min2double(v, drivable->getMaxSpeed());
 
+        if (laneChange && isChanging()) {
+            double s = getGap();
+            double t = ((getWidth() + (getLeader() ? getLeader()->getWidth() : getCurLane()->getWidth())) / 2 * 1.1 - std::abs(getOffset())) / MIN_OFFSET_SPEED;
+            v = min2double(v, t > eps ? s / t : 100);
+        }
         // car follow
-        v = min2double(v, getCarFollowSpeed(interval));
+        else v = min2double(v, getCarFollowSpeed(interval));
 
         if (isIntersectionRelated()) {
             v = min2double(v, getIntersectionRelatedSpeed(interval));

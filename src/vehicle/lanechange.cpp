@@ -115,7 +115,7 @@ namespace CityFlow{
     void LaneChange::finishChanging() {
         changing = false;
         finished = true;
-        lastChangeTime = vehicle->engine->getCurrentTime();
+        vehicle->laneChangeInfo.partner->laneChange->lastChangeTime = vehicle->engine->getCurrentTime();
         Vehicle *partner = vehicle->getPartner();
         if (!partner->isReal())
             partner->setId(vehicle->getId());
@@ -159,8 +159,8 @@ namespace CityFlow{
             if (curLane->getLength() - vehicle->getDistance() < 30) return;
             double curEst = vehicle->getGap();
             double outerEst = 0;
-            double expectedGap = 2 * vehicle->getLen() + 4 * interval * vehicle->getMaxSpeed();
-            if (vehicle->getGap() > expectedGap || vehicle->getGap() < 1.5 * vehicle->getLen()) return;
+            double expectedGap = 2 * vehicle->getMinGap() + 2 * vehicle->getMinBrakeDistance();
+            if (vehicle->getGap() > expectedGap) return;
 
             Router &router = vehicle->controllerInfo.router;
             if (curLane->getLaneIndex() < curLane->getBelongRoad()->getLanes().size() - 1){

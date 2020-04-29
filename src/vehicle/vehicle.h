@@ -329,7 +329,7 @@ namespace CityFlow {
 
         bool canChange() const{ return laneChange->canChange(); }
 
-        double getGap() const{ return controllerInfo.gap; }
+        double getGap() const{ return controllerInfo.leader ? controllerInfo.gap : controllerInfo.drivable->getLength(); }
 
         int laneChangeUrgency() const { return laneChange->signalSend->urgency; }
 
