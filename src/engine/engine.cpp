@@ -604,41 +604,6 @@ namespace CityFlow {
             updateLog();
         }
 
-        //TODO: test code, remove it after done.
-        int assertTimes = 0;
-        for (auto &a : threadDrivablePool)
-            for (auto b : a) {
-                Vehicle* prev = nullptr;
-                auto l = b->getVehicles();
-                for (auto v : l) {
-                    if (prev) {
-                        assert(prev->getDistance() > v->getDistance() || prev->getDistance() == v->getDistance() && prev->getPriority() > v->getPriority());
-                        assert(v->getLeader() == prev);
-                        assert(prev->getFollower() == v);
-                        assertTimes += 3;
-                    }
-                    prev = v;
-                }
-                assert(!b->getLastVehicle() || !b->getLastVehicle()->getFollower());
-                assertTimes++;
-                if (b->isLane()) {
-                    Lane* ll = static_cast<Lane*>(b);
-                    for (auto s : ll->getSegments()) {
-                        prev = nullptr;
-                        for (auto v : s.getVehicles()) {
-                            if (prev) {
-                                double dis = (*v)->getDistance();
-                                assert(prev->getDistance() > dis || prev->getDistance() == dis && prev->getPriority() > (*v)->getPriority());
-                                assert(dis >= s.getStartPos() && dis <= s.getEndPos());
-                                assertTimes += 2;
-                            }
-                            prev = *v;
-                        }
-                    }
-                }
-            }
-        std::cout << assertTimes << '|';
-
         step += 1;
     }
 
