@@ -287,6 +287,8 @@ namespace CityFlow {
 
         void popVehicle() { vehicles.pop_front(); }
 
+        virtual void sortVehicles();
+
         virtual std::string getId() const = 0;
     };
 
@@ -395,6 +397,8 @@ namespace CityFlow {
 
         Vehicle* getVehicleAfterDistance(double dis, size_t segmentIndex) const;
 
+        void sortVehicles() override;
+
     };
 
 
@@ -474,6 +478,8 @@ namespace CityFlow {
         bool isTurn() const { return roadLink->isTurn(); }
 
         void reset();
+
+        void sortVehicles() override { return Drivable::sortVehicles(); }
 
         std::string getId() const override {
             return (startLane ? startLane->getId() : "") + "_TO_" + (endLane ? endLane->getId() : "");

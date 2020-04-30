@@ -937,5 +937,31 @@ FOUND:;
         vehicles.insert(itr, vehicle);
     }
 
+    void Drivable::sortVehicles() {
+        // bubble sort
+        bool ret = false;
+        for (auto it = vehicles.begin(); it != vehicles.end(); ) {
+            double dist = (*it)->getDistance();
+            auto prev = it, next = it;
+            next++;
+            while (1) {
+                double prevDist = --prev != --vehicles.begin() ? (*prev)->getDistance() : 0;
+                if (prev == --vehicles.begin() || prevDist > dist || prevDist == dist && (*prev)->getPriority() > (*it)->getPriority()) {
+                    if (++prev != it) {
+                        vehicles.insert(prev, *it);
+                        vehicles.erase(it);
+                    }
+                    break;
+                }
+            }
+            it = next;
+        }
+    }
+
+    void Lane::sortVehicles() {
+        Drivable::sortVehicles();
+        initSegments();
+    }
+
 }
 

@@ -225,4 +225,48 @@ namespace CityFlow{
         else return leader->getDistance() - vehicle->getDistance() - leader->getLen();
     }
 
+    void InvalidLaneLaneChange::makeSignal(double interval) {
+        auto drivable = vehicle->getCurDrivable();
+        if (!drivable->isLane()) return;
+        Lane *lane = static_cast<Lane *>(drivable);
+        Router& router = vehicle->controllerInfo.router;
+        if (router.onLastRoad() || router.getNextDrivable(lane)) {
+            SimpleLaneChange::makeSignal(interval);
+            return;
+        }
+        signalSend = std::make_shared<Signal>();
+        signalSend->source = vehicle;
+        int indistance = 1, outdistance = 1;
+        auto *outerLane = lane->getOuterLane();
+        for (auto *outout = outerLane; outout; outout = outout->getOuterLane(), outdistance++)
+            if (router.getNextDrivable(outout)) {
+                signalSend->target = outerLane;
+                break;
+            }
+        if (!signalSend->target) outdistance = INT_MAX;
+        auto *innerLane = lane->getInnerLane();
+        for (auto *inin = innerLane; inin && indistance < outdistance; inin = inin->getInnerLane(), indistance++)
+            if (router.getNextDrivable(inin)) {
+                signalSend->target = innerLane;
+                break;
+            }
+        //assume route exists
+        assert(signalSend->target);
+        if (vehicle->getDistance() < drivable->getLength() - std::min(indistance, outdistance) * drivable->getWidth() * 10
+            && vehicle->getDistance() < drivable->getLength() / 2
+            && vehicle->getDistance() < drivable->getLength() - 300
+           )
+            return;
+        signalSend->urgency = 100;
+        LaneChange::makeSignal(interval);
+    }
+
+    double InvalidLaneLaneChange::safeGapBefore() const {
+        return signalSend && signalSend->urgency >= 100 ? -100 : SimpleLaneChange::safeGapBefore();
+    }
+
+    double InvalidLaneLaneChange::safeGapAfter() const {
+        return signalSend && signalSend->urgency >= 100 ? -100 : SimpleLaneChange::safeGapAfter();
+    }
+
 }

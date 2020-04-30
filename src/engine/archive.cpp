@@ -409,7 +409,7 @@ namespace CityFlow {
             laneChangeInfo.offset = getJsonMember<double>("offset", vehicleValue);
 
             // Construct the laneChange Object
-            vehicle->laneChange = std::make_shared<SimpleLaneChange>(vehicle);
+            vehicle->laneChange = std::make_shared<InvalidLaneLaneChange>(vehicle);
             auto &laneChange = vehicle->laneChange;
             rapidjson::Value::ConstMemberIterator sendItr = vehicleValue.FindMember("laneChangeUrgency");
             if (sendItr != vehicleValue.MemberEnd()) {

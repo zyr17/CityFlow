@@ -18,8 +18,8 @@ namespace CityFlow {
         struct Signal{
             int urgency;
             int direction; // -1 for left , 1 for right, 0 for unchanged
-            Lane * target;
-            Vehicle * source;
+            Lane * target = nullptr;
+            Vehicle * source = nullptr;
             int response = 0;
             double extraSpace = 0;
         };
@@ -111,6 +111,16 @@ namespace CityFlow {
 
         double safeGapAfter() const override;
 
+    };
+
+    class InvalidLaneLaneChange : public SimpleLaneChange {
+    public:
+        explicit InvalidLaneLaneChange(Vehicle* vehicle) : SimpleLaneChange(vehicle) {};
+        explicit InvalidLaneLaneChange(Vehicle* vehicle, const LaneChange& other) : SimpleLaneChange(vehicle, other) {};
+
+        void makeSignal(double interval) override;
+        double safeGapBefore() const override;
+        double safeGapAfter() const override;
     };
 }
 

@@ -20,7 +20,7 @@ namespace CityFlow {
         : vehicleInfo(vehicle.vehicleInfo), controllerInfo(this, vehicle.controllerInfo),
           laneChangeInfo(vehicle.laneChangeInfo), buffer(vehicle.buffer), priority(vehicle.priority),
           id(vehicle.id), engine(vehicle.engine),
-          laneChange(std::make_shared<SimpleLaneChange>(this, *vehicle.laneChange)),
+          laneChange(std::make_shared<InvalidLaneLaneChange>(this, *vehicle.laneChange)),
           flow(flow){
         enterTime = vehicle.enterTime;
     }
@@ -28,7 +28,7 @@ namespace CityFlow {
     Vehicle::Vehicle(const Vehicle &vehicle, const std::string &id, Engine *engine, Flow *flow)
         : vehicleInfo(vehicle.vehicleInfo), controllerInfo(this, vehicle.controllerInfo),
           laneChangeInfo(vehicle.laneChangeInfo), buffer(vehicle.buffer), 
-          id(id), engine(engine), laneChange(std::make_shared<SimpleLaneChange>(this)),
+          id(id), engine(engine), laneChange(std::make_shared<InvalidLaneLaneChange>(this)),
           flow(flow){
         while (engine->checkPriority(priority = engine->rnd()));
         controllerInfo.router.setVehicle(this);
@@ -37,7 +37,7 @@ namespace CityFlow {
 
     Vehicle::Vehicle(const VehicleInfo &vehicleInfo, const std::string &id, Engine *engine, Flow *flow)
         : vehicleInfo(vehicleInfo), controllerInfo(this, vehicleInfo.route, &(engine->rnd)),
-          id(id), engine(engine), laneChange(std::make_shared<SimpleLaneChange>(this)),
+          id(id), engine(engine), laneChange(std::make_shared<InvalidLaneLaneChange>(this)),
           flow(flow){
         controllerInfo.approachingIntersectionDistance =
             vehicleInfo.maxSpeed * vehicleInfo.maxSpeed / vehicleInfo.usualNegAcc / 2 +
@@ -155,9 +155,12 @@ namespace CityFlow {
     }
 
     void Vehicle::updateLeaderAndGap(Vehicle *leader) {
+        //TODO: controllerInfo.follower doesn't consider vehicles on other lanes
+        if (getCurDrivable()->getLastVehicle() == this) controllerInfo.follower = nullptr;
         if (leader != nullptr && leader->getCurDrivable() == getCurDrivable()) {
             controllerInfo.leader = leader;
             controllerInfo.gap = leader->getDistance() - leader->getLen() - controllerInfo.dis;
+            leader->controllerInfo.follower = this;
         } else {
             controllerInfo.leader = nullptr;
             Drivable *drivable = nullptr;

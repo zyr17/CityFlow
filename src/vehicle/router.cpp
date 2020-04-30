@@ -22,6 +22,7 @@ namespace CityFlow {
 
     Drivable *Router::getFirstDrivable() const {
         const std::vector<Lane *> &lanes = route[0]->getLanePointers();
+        return lanes[(*rnd)() % lanes.size()];
         if (route.size() == 1) {
             return selectLane(nullptr, lanes);
         } else {
