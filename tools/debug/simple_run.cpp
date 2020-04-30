@@ -8,6 +8,25 @@
 
 using namespace CityFlow;
 
+void pushVehicle(Engine &engine, std::vector<std::string> &roads, double maxspeed = 16.67, double posAcc = 4.5, double negAcc = 2.0, double headwayTime = 1.5) {
+    std::map<std::string, double> vt;
+    vt["length"] = 5.0;
+    vt["width"] = 2.0;
+    vt["maxPosAcc"] = posAcc;
+    vt["maxNegAcc"] = negAcc;
+    vt["usualPosAcc"] = posAcc;
+    vt["usualNegAcc"] = negAcc;
+    vt["minGap"] = 2.5;
+    vt["maxSpeed"] = maxspeed;
+    vt["headwayTime"] = headwayTime;
+    engine.pushVehicle(vt, roads);
+}
+
+void neverStopRandomSpeed(Engine &engine, std::vector<std::string> &roads, double minSpeed = 1, double maxSpeed = 30) {
+    double speed = minSpeed + rand() * 1.0 / RAND_MAX * (maxSpeed - minSpeed);
+    pushVehicle(engine, roads, speed, 999999999, 0, 0);
+}
+
 int main(int argc, char const *argv[]) {
     optionparser::OptionParser parser;
 
@@ -42,22 +61,31 @@ int main(int argc, char const *argv[]) {
     size_t threadNum = parser.get_value<int>("threadNum");
     std::string dataDir = parser.get_value<std::string>("dataDir");
 
+    srand(unsigned(time(NULL)));
     Engine engine(dataDir + configFile, (size_t) threadNum);
     time_t startTime, endTime;
+    double dummy = 0;
     time(&startTime);
+    std::vector<std::string> vec = { "road_0", "road_1" };
     for (int i = 0; i < totalStep; i++) {
         if (verbose) {
             std::cout << i << " " << engine.getVehicleCount() << std::endl;
         }
+        //neverStopRandomSpeed(engine, vec);
         engine.nextStep();
-        //engine.getVehicleSpeed();
-        //engine.getLaneVehicles();
-        //engine.getLaneWaitingVehicleCount();
-        //engine.getVehicleDistance();
-        //engine.getCurrentTime();
+        for (auto& i : engine.getVehicleSpeed())
+            dummy += i.second;
+        for (auto& i : engine.getLaneVehicles())
+            dummy += i.second.size();
+        for (auto& i : engine.getLaneWaitingVehicleCount())
+            dummy += i.second;
+        for (auto& i : engine.getVehicleDistance())
+            dummy += i.second;
+        dummy += engine.getCurrentTime();
     }
     time(&endTime);
     std::cout << "Total Step: " << totalStep << std::endl;
     std::cout << "Total Time: " << (endTime - startTime) << "s" << std::endl;
+    std::cout << "Dummy: " << dummy << std::endl;
     return 0;
 }
