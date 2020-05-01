@@ -35,6 +35,7 @@ jobs:
           make
     - name: basic_test
       run: |
+          pwd
           cp ../examples/ tests/ -r
           cd tests
           ./basic_test
