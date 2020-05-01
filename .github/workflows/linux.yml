@@ -27,16 +27,21 @@ jobs:
           sudo make
           sudo cp *.a /usr/local/lib
           cd $codepath
-          pwd
-    - name: make debug
+    - name: make
       run: |
           mkdir build
           cd build
           cmake .. -DCMAKE_BUILD_TYPE=Debug
           make
-    - name: make distcheck
+    - name: basic_test
       run: |
           cp ../examples/ tests/ -r
           cd tests
           ./basic_test
-
+    - name: simple_run
+      run: |
+          cd ..
+          cp ../examples/ tools/debug/ -r
+          cd tools/debug/
+          export DATADIR=`pwd`
+          ./simple_run -c examples/config.json
