@@ -32,18 +32,16 @@ jobs:
           mkdir build
           cd build
           cmake .. -DCMAKE_BUILD_TYPE=Debug
-          make
-          pwd
+          make -j
     - name: basic_test
       run: |
-          pwd
           cd build
           cp ../examples/ tests/ -r
           cd tests
           ./basic_test
     - name: simple_run
       run: |
-          cd ..
+          cd build
           cp ../examples/ tools/debug/ -r
           cd tools/debug/
           export DATADIR=`pwd`
