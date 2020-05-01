@@ -33,9 +33,11 @@ jobs:
           cd build
           cmake .. -DCMAKE_BUILD_TYPE=Debug
           make
+          pwd
     - name: basic_test
       run: |
           pwd
+          cd build
           cp ../examples/ tests/ -r
           cd tests
           ./basic_test
