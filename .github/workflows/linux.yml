@@ -1,0 +1,41 @@
+name: C/C++ CI
+
+on:
+  push:
+    branches: [ linux ]
+  pull_request:
+    branches: [ linux ]
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v2
+    - name: apt install
+      run: |
+        - apt update
+        - apt install git cmake build-essential python3-pip libgtest-dev
+    - name: install gtest
+      run: |
+        - export codepath=`pwd`
+        - cd /usr/src/gtest
+        - mkdir build
+        - cd build
+        - cmake ..
+        - make
+        - cp *.a /usr/local/lib
+        - cd $codepath
+    - name: make debug
+      run: |
+        - mkdir build
+        - cd build
+        - cmake .. -DCMAKE_BUILD_TYPE=Debug
+        - make
+    - name: make distcheck
+      run: |
+        - cp ../examples/ tests/ -r
+        - cd tests
+        - ./basic_test
+
