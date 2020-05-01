@@ -15,18 +15,19 @@ jobs:
     - uses: actions/checkout@v2
     - name: apt install
       run: |
-          apt update
-          apt install git cmake build-essential python3-pip libgtest-dev
+          sudo apt update
+          sudo apt install git cmake build-essential python3-pip libgtest-dev
     - name: install gtest
       run: |
           export codepath=`pwd`
           cd /usr/src/gtest
-          mkdir build
+          sudo mkdir build
           cd build
-          cmake ..
-          make
-          cp *.a /usr/local/lib
+          sudo cmake ..
+          sudo make
+          sudo cp *.a /usr/local/lib
           cd $codepath
+          pwd
     - name: make debug
       run: |
           mkdir build
