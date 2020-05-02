@@ -6,7 +6,7 @@
 using namespace CityFlow;
 
 size_t threads = std::min(std::thread::hardware_concurrency(), 4u);
-std::string configFile = "examples/config.json";
+std::string configFile = "../json/config.json";
 
 TEST(Basic, Basic) {
     size_t totalStep = 2000;

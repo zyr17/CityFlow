@@ -58,6 +58,9 @@ include_directories(extern/rapidjson/include)
 add_subdirectory(src)
 
 # Tests
+if (MSVC)
+    set(GTEST_ROOT "C:/Program Files/GTest/")
+endif()
 find_package(GTest)
 if(GTEST_FOUND)
     enable_testing()
