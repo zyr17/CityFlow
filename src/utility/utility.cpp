@@ -1,7 +1,4 @@
 #include "utility/utility.h"
-#include <cmath>
-#include <algorithm>
-#include <iostream>
 
 #include "rapidjson/filereadstream.h"
 #include "rapidjson/filewritestream.h"

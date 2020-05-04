@@ -1,8 +1,6 @@
 #include "vehicle/lanechange.h"
 #include "engine/engine.h"
 
-#include <iostream>
-
 namespace CityFlow{
     LaneChange::LaneChange(Vehicle * vehicle, const LaneChange &other)
         : lastDir(other.lastDir), signalRecv(other.signalRecv),

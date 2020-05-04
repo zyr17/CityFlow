@@ -1,10 +1,6 @@
 #include "vehicle/vehicle.h"
 #include "engine/engine.h"
 
-#include <iostream>
-#include <limits>
-#include <random>
-
 namespace CityFlow {
 
     Vehicle::ControllerInfo::ControllerInfo(Vehicle *vehicle, std::shared_ptr<const Route> route, std::mt19937 *rnd)

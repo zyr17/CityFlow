@@ -20,6 +20,11 @@
 #include <typeinfo>
 #include <stdexcept>
 #include <utility>
+#include <sstream>
+#include <string>
+#include <algorithm>
+#include <limits>
+
 
 #ifdef GTEST_PUBLIC
     #define private public

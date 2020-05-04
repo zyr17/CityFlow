@@ -3,10 +3,6 @@
 #include "flow/route.h"
 #include "roadnet/roadnet.h"
 
-#include <limits>
-#include <queue>
-#include <set>
-
 namespace CityFlow {
     Router::Router(const Router &other) : vehicle(other.vehicle), route(other.route),
                                           rnd(other.rnd) {

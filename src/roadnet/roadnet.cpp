@@ -4,9 +4,6 @@
 #include "rapidjson/document.h"
 #include "rapidjson/filereadstream.h"
 
-#include <iostream>
-#include <algorithm>
-
 using std::map;
 using std::string;
 
