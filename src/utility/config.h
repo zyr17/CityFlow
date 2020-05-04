@@ -24,7 +24,7 @@
 #include <string>
 #include <algorithm>
 #include <limits>
-
+#include <cstring>
 
 #ifdef GTEST_PUBLIC
     #define private public
