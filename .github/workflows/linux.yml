@@ -36,6 +36,7 @@ jobs:
     - name: basic_test
       run: |
           cd build
+          cp ../examples/ tests/ -r
           cp ../examples/ ./ -r
           mv ./examples ./json
           cd tests
