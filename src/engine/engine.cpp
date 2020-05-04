@@ -215,23 +215,36 @@ namespace CityFlow {
         vehicle.setDeltaDistance(deltaDis);
 
         if (laneChange) {
-            if (!vehicle.isReal() && vehicle.getChangedDrivable() != nullptr) {
-                vehicle.abortLaneChange();
+            if (vehicle.hasPartner() && (vehicle.getChangedDrivable() != nullptr || vehicle.getPartner()->getChangedDrivable() != nullptr)) {
+                vehicle.isReal() ? vehicle.getPartner()->abortLaneChange() : vehicle.abortLaneChange();
             }
 
             if (vehicle.isChanging()) {
                 assert(vehicle.isReal());
 
-                int dir = vehicle.getLaneChangeDirection();
-                double newOffset = fabs(vehicle.getOffset() + max2double(0.2 * nextSpeed, 1) * interval * dir);
-                newOffset = min2double(newOffset, vehicle.getMaxOffset());
-                vehicle.setOffset(newOffset * dir);
+                Vehicle *shadow = vehicle.getPartner();
+                assert(shadow && !shadow->isReal());
+                auto collisionFree = [](Vehicle* v) { return !v || !v->getLeader() || v->getGap() > v->getMinBrakeDistance(); };
+                if (collisionFree(shadow) && collisionFree(shadow->getFollower())) {
+                    int dir = vehicle.getLaneChangeDirection();
+                    double newOffset = fabs(vehicle.getOffset() + max2double(0.2 * nextSpeed, MIN_OFFSET_SPEED) * interval * dir);
+                    newOffset = min2double(newOffset, vehicle.getMaxOffset());
+                    vehicle.setOffset(newOffset * dir);
 
-                if (newOffset >= vehicle.getMaxOffset()) {
-                    std::lock_guard<std::mutex> guard(lock);
-                    vehicleMap.erase(vehicle.getPartner()->getId());
-                    vehicleMap[vehicle.getId()] = vehicle.getPartner();
-                    vehicle.finishChanging();
+                    if (newOffset >= vehicle.getMaxOffset()) {
+                        std::lock_guard<std::mutex> guard(lock);
+                        auto partner = vehicle.getPartner();
+                        vehicleMap.erase(partner->getId());
+                        vehicleMap[vehicle.getId()] = partner;
+                        int myPriority = vehicle.getPriority(), partnerPriority = partner->getPriority();
+                        auto myPool = vehiclePool[myPriority];
+                        auto partnerPool = vehiclePool[partnerPriority];
+                        vehiclePool[myPriority] = partnerPool;
+                        vehiclePool[partnerPriority] = myPool;
+                        partner->setPriority(myPriority);
+                        vehicle.setPriority(partnerPriority);
+                        vehicle.finishChanging();
+                    }
                 }
 
             }
@@ -423,6 +436,7 @@ namespace CityFlow {
     void Engine::threadUpdateLeaderAndGap(const std::vector<Drivable *> &drivables) {
         startBarrier.wait();
         for (Drivable *drivable : drivables) {
+            drivable->sortVehicles();
             Vehicle *leader = nullptr;
             for (Vehicle *vehicle : drivable->getVehicles()) {
                 vehicle->updateLeaderAndGap(leader);
@@ -593,7 +607,7 @@ namespace CityFlow {
     }
 
     bool Engine::checkPriority(int priority) {
-        return vehiclePool.find(priority) != vehiclePool.end();
+        return vehiclePool.find(priority) != vehiclePool.end() && vehiclePool.find(priority + 1) != vehiclePool.end();
     }
 
     void Engine::pushVehicle(Vehicle *const vehicle, bool pushToDrivable) {
@@ -806,6 +820,7 @@ namespace CityFlow {
     void Engine::insertShadow(Vehicle *vehicle) {
         size_t threadIndex = vehiclePool.at(vehicle->getPriority()).second;
         Vehicle *shadow = new Vehicle(*vehicle, vehicle->getId() + "_shadow", this);
+        shadow->setPriority(vehicle->getPriority() + 1);
         vehicleMap.emplace(shadow->getId(), shadow);
         vehiclePool.emplace(shadow->getPriority(), std::make_pair(shadow, threadIndex));
         threadVehiclePool[threadIndex].insert(shadow);

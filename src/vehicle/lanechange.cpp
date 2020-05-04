@@ -113,7 +113,7 @@ namespace CityFlow{
     void LaneChange::finishChanging() {
         changing = false;
         finished = true;
-        lastChangeTime = vehicle->engine->getCurrentTime();
+        vehicle->laneChangeInfo.partner->laneChange->lastChangeTime = vehicle->engine->getCurrentTime();
         Vehicle *partner = vehicle->getPartner();
         if (!partner->isReal())
             partner->setId(vehicle->getId());
@@ -157,8 +157,8 @@ namespace CityFlow{
             if (curLane->getLength() - vehicle->getDistance() < 30) return;
             double curEst = vehicle->getGap();
             double outerEst = 0;
-            double expectedGap = 2 * vehicle->getLen() + 4 * interval * vehicle->getMaxSpeed();
-            if (vehicle->getGap() > expectedGap || vehicle->getGap() < 1.5 * vehicle->getLen()) return;
+            double expectedGap = 2 * vehicle->getMinGap() + 2 * vehicle->getMinBrakeDistance();
+            if (vehicle->getGap() > expectedGap) return;
 
             Router &router = vehicle->controllerInfo.router;
             if (curLane->getLaneIndex() < curLane->getBelongRoad()->getLanes().size() - 1){
@@ -221,6 +221,50 @@ namespace CityFlow{
         Vehicle *leader = lane->getVehicleAfterDistance(vehicle->getDistance(), curSegIndex);
         if (!leader) return lane->getLength()-vehicle->getDistance();
         else return leader->getDistance() - vehicle->getDistance() - leader->getLen();
+    }
+
+    void InvalidLaneLaneChange::makeSignal(double interval) {
+        auto drivable = vehicle->getCurDrivable();
+        if (!drivable->isLane()) return;
+        Lane *lane = static_cast<Lane *>(drivable);
+        Router& router = vehicle->controllerInfo.router;
+        if (router.onLastRoad() || router.getNextDrivable(lane)) {
+            SimpleLaneChange::makeSignal(interval);
+            return;
+        }
+        signalSend = std::make_shared<Signal>();
+        signalSend->source = vehicle;
+        int indistance = 1, outdistance = 1;
+        auto *outerLane = lane->getOuterLane();
+        for (auto *outout = outerLane; outout; outout = outout->getOuterLane(), outdistance++)
+            if (router.getNextDrivable(outout)) {
+                signalSend->target = outerLane;
+                break;
+            }
+        if (!signalSend->target) outdistance = INT_MAX;
+        auto *innerLane = lane->getInnerLane();
+        for (auto *inin = innerLane; inin && indistance < outdistance; inin = inin->getInnerLane(), indistance++)
+            if (router.getNextDrivable(inin)) {
+                signalSend->target = innerLane;
+                break;
+            }
+        //assume route exists
+        assert(signalSend->target);
+        if (vehicle->getDistance() < drivable->getLength() - std::min(indistance, outdistance) * drivable->getWidth() * 10
+            && vehicle->getDistance() < drivable->getLength() / 2
+            && vehicle->getDistance() < drivable->getLength() - 300
+           )
+            return;
+        signalSend->urgency = 100;
+        LaneChange::makeSignal(interval);
+    }
+
+    double InvalidLaneLaneChange::safeGapBefore() const {
+        return signalSend && signalSend->urgency >= 100 ? -100 : SimpleLaneChange::safeGapBefore();
+    }
+
+    double InvalidLaneLaneChange::safeGapAfter() const {
+        return signalSend && signalSend->urgency >= 100 ? -100 : SimpleLaneChange::safeGapAfter();
     }
 
 }

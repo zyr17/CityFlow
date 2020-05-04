@@ -47,6 +47,7 @@ namespace CityFlow {
         friend class Router;
         friend class LaneChange;
         friend class SimpleLaneChange;
+        friend class InvalidLaneLaneChange;
         friend class Archive;
     private:
         struct Buffer {
@@ -84,6 +85,7 @@ namespace CityFlow {
             double gap;
             size_t enterLaneLinkTime;
             Vehicle *leader = nullptr;
+            Vehicle* follower = nullptr;
             Vehicle *blocker = nullptr;
             bool end = false;
             bool running = false;
@@ -257,6 +259,8 @@ namespace CityFlow {
 
         Vehicle *getLeader() const { return controllerInfo.leader; }
 
+        Vehicle *getFollower() const { return controllerInfo.follower; }
+
         inline double getEnterLaneLinkTime() const { return controllerInfo.enterLaneLinkTime; }
 
         inline double getHeadwayTime() const { return vehicleInfo.headwayTime; }
@@ -327,7 +331,7 @@ namespace CityFlow {
 
         bool canChange() const{ return laneChange->canChange(); }
 
-        double getGap() const{ return controllerInfo.gap; }
+        double getGap() const{ return controllerInfo.leader ? controllerInfo.gap : controllerInfo.drivable->getLength(); }
 
         int laneChangeUrgency() const { return laneChange->signalSend->urgency; }
 
