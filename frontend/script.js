@@ -622,6 +622,7 @@ function drawEdge(edge, graphics) {
                 let angle = new Sprite(anglesDataURL['straight'][3]);
                 angle.pointX = pointB.moveAlong(pointBOffset, prevOffset);
                 angle.pointY = pointB.moveAlong(pointBOffset, offset);
+                angle.width = angle.height = 0;
                 angle.angleHeight = minWidth * ANGLE_LENGTH_RATIO;
                 angle.x = angle.y = 100;
                 angleContainer.addChild(angle);
@@ -730,7 +731,7 @@ function drawStep(step) {
     let [carLogs, tlLogs, ldLogs] = logs[step].split(';');
     tlLogs = tlLogs.split(',');
     carLogs = carLogs.split(',');
-    ldLogs = ldLogs.split(',');
+    ldLogs = ldLogs && ldLogs.split(',');
     
     let tlLog, tlEdge, tlStatus;
     for (let i = 0, len = tlLogs.length;i < len;++i) {
@@ -748,6 +749,7 @@ function drawStep(step) {
     }
 
     let ldLog, ldEdge, ldStatus;
+    if (ldLogs)
     for (let i = 0, len = ldLogs.length;i < len;++i) {
         ldLog = ldLogs[i].split(' ');
         ldEdge = ldLog[0];
