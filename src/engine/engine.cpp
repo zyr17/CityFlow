@@ -215,7 +215,7 @@ namespace CityFlow {
         vehicle.setDeltaDistance(deltaDis);
 
         if (laneChange) {
-            if (vehicle.hasPartner() && (vehicle.getChangedDrivable() != nullptr || vehicle.getPartner()->getChangedDrivable() != nullptr)) {
+            if (vehicle.hasPartner() && (vehicle.hasSetDrivable() || vehicle.getPartner()->hasSetDrivable())) {
                 vehicle.isReal() ? vehicle.getPartner()->abortLaneChange() : vehicle.abortLaneChange();
             }
 
