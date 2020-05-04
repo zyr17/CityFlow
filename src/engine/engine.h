@@ -174,6 +174,8 @@ namespace CityFlow {
         
         void reset(bool resetRnd = false);
 
+        void setLaneDirection(const std::string& lane, const std::string& direction);
+
         // archive
         void load(const Archive &archive) { archive.resume(*this); }
         Archive snapshot() { return Archive(*this); }

@@ -241,7 +241,7 @@ namespace CityFlow {
                         laneLink.startLane = startLane;
                         laneLink.endLane = endLane;
                         laneLink.length = getLengthOfPoints(laneLink.points);
-                        startLane->laneLinks.push_back(&laneLink);
+                        startLane->pushLaneLink(&laneLink);
                         drivableMap.emplace(laneLink.getId(), &laneLink);
                         path.pop_back();
                     }
@@ -312,6 +312,18 @@ namespace CityFlow {
             laneLinks.insert(laneLinks.end(), intersectionLaneLinks.begin(), intersectionLaneLinks.end());
             drivables.insert(drivables.end(), intersectionLaneLinks.begin(), intersectionLaneLinks.end());
         }
+
+        // find directionChangeLanes
+        for (auto& lane : lanes) {
+            if (lane->isDirectionChangeLane()) {
+                directionChangeLanes[lane->getId()] = lane;
+                for (auto& lanelink : lane->getLaneLinks())
+                    lanelink->setActivate(false);
+            }
+            if (lane->getLaneLinks().size())
+                lane->setActivatedDirection(lane->getLaneLinks()[0]->getRoadLinkType());
+        }
+
         return true;
     }
 
@@ -438,7 +450,7 @@ namespace CityFlow {
     std::vector<LaneLink *> Lane::getLaneLinksToRoad(const Road *road) const {
         std::vector<LaneLink *> ret;
         for (auto &laneLink : laneLinks) {
-            if (laneLink->getEndLane()->getBelongRoad() == road)
+            if (laneLink->getEndLane()->getBelongRoad() == road && laneLink->isActivated())
                 ret.push_back(laneLink);
         }
         return ret;
@@ -961,6 +973,28 @@ FOUND:;
     void Lane::sortVehicles() {
         Drivable::sortVehicles();
         initSegments();
+    }
+
+    void Lane::pushLaneLink(LaneLink *laneLink) {
+        laneLinks.push_back(laneLink);
+        auto direction = laneLink->getRoadLink()->getType();
+        assert(direction < sizeof(differentDirectionLaneLinks) / sizeof(differentDirectionLaneLinks[0]));
+        differentDirectionLaneLinks[direction].push_back(laneLink);
+        if (!directionChange) {
+            int count = 0;
+            for (auto &i : differentDirectionLaneLinks)
+                count += !!i.size();
+            if (count > 1) directionChange = true;
+        }
+    }
+
+    void Lane::setActivatedDirection(RoadLinkType direction) {
+        assert(differentDirectionLaneLinks[direction].size());
+        for (auto &lanelink : differentDirectionLaneLinks[activatedDirection])
+            lanelink->setActivate(false);
+        activatedDirection = direction;
+        for (auto &lanelink : differentDirectionLaneLinks[activatedDirection])
+            lanelink->setActivate(true);
     }
 
 }
