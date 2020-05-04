@@ -1,20 +1,13 @@
-#include "engine/engine.h"
-
-#ifdef public
-    #undef public
-#endif
-#ifdef protected
-    #undef protected
-#endif
-
 #include <string>
 #include <cstdlib>
 #include <gtest/gtest.h>
 
+#include "engine/engine.h"
+
 using namespace CityFlow;
 
 size_t threads = std::min(std::thread::hardware_concurrency(), 4u);
-std::string configFile = "../json/config.json";
+std::string configFile = "examples/config.json";
 
 TEST(Basic, Basic) {
     size_t totalStep = 2000;
