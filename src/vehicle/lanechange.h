@@ -1,8 +1,6 @@
 #ifndef CITYFLOW_LANECHANGE_H
 #define CITYFLOW_LANECHANGE_H
 
-#include <memory>
-
 #include "roadnet/roadnet.h"
 #include "utility/config.h"
 

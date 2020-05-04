@@ -1,10 +1,6 @@
 #ifndef CITYFLOW_ROUTER
 #define CITYFLOW_ROUTER
 
-#include <vector>
-#include <random>
-#include <memory>
-
 #include "engine/archive.h"
 #include "utility/config.h"
 

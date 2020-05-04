@@ -1,9 +1,6 @@
 #ifndef CITYFLOW_VEHICLE
 #define CITYFLOW_VEHICLE
 
-#include <utility>
-#include <memory>
-
 #include "utility/utility.h"
 #include "flow/route.h"
 #include "vehicle/router.h"

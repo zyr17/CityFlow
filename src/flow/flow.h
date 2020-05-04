@@ -1,8 +1,6 @@
 #ifndef CITYFLOW_FLOW_H
 #define CITYFLOW_FLOW_H
 
-#include <iostream>
-
 #include "vehicle/vehicle.h"
 #include "flow/route.h"
 #include "utility/config.h"

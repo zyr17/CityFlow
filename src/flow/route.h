@@ -1,8 +1,6 @@
 #ifndef CITYFLOW_ROUTE_H
 #define CITYFLOW_ROUTE_H
 
-#include <vector>
-
 #include "utility/config.h"
 
 namespace CityFlow {
