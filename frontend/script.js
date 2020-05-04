@@ -52,7 +52,6 @@ let Application = PIXI.Application,
 ;
 
 function setAngle(sprite, anglestr, pointX, pointY, height = null) {
-    //console.log(sprite, anglestr, pointX, pointY, height);
     let expectHeight = 600;
     let roadWidth = pointX.distanceTo(pointY);
     if (height == null) height = roadWidth * ANGLE_LENGTH_RATIO;
@@ -64,7 +63,6 @@ function setAngle(sprite, anglestr, pointX, pointY, height = null) {
                    .moveAlong(direction, (roadWidth - width) / 2)
                    .moveAlong(insideDirection, height / expectHeight * (expectHeight - anglesDataURL[anglestr][1]));
     let picangle = direction;
-    //sprite.texture = Texture.fromImage(anglesDataURL[anglestr][2]);
     sprite.texture = anglesDataURL[anglestr][3];
     sprite.rotation = Math.atan2(picangle.y, picangle.x);
     sprite.x = picPoint.x;
@@ -72,7 +70,6 @@ function setAngle(sprite, anglestr, pointX, pointY, height = null) {
     sprite.width = sprite.texture.width;
     sprite.height = sprite.texture.height;
     sprite.scale.set(width / expectWidth);
-    //console.log(sprite.width, sprite.height, sprite.x, sprite.y,sprite.texture.width,sprite.texture.height);
 }
 
 var controls = new function () {
@@ -478,12 +475,6 @@ function drawRoadnet() {
         signal.anchor.set(1, 0.5);
         carPool.push([car, signal]);
     }
-    // let count = 0;
-    // for (let i in anglesDataURL){
-    //     newangle = new Sprite(anglesDataURL[i][3]);
-    //     newangle.x = newangle.y = count++ * 100;
-    //     simulatorContainer.addChild(newangle);
-    // }
     showCanvas();
 
     return true;
@@ -736,12 +727,6 @@ function drawStep(step) {
         chart.addData(chartLog[step]);
     }
 
-    // if (step % 10 == 0){
-    //     newangle.texture = anglesDataURL[['straight', 'left', 'right'][parseInt(Math.random() * 3)]][3];
-    //     newangle.scale.set(Math.random() * 2);
-    //     newangle.alpha = Math.random();
-    // }
-
     let [carLogs, tlLogs, ldLogs] = logs[step].split(';');
     tlLogs = tlLogs.split(',');
     carLogs = carLogs.split(',');
@@ -767,10 +752,8 @@ function drawStep(step) {
         ldLog = ldLogs[i].split(' ');
         ldEdge = ldLog[0];
         ldStatus = ldLog.slice(1);
-        //console.log(ldEdge, ldStatus);
         for (let j = 0, len2 = ldStatus.length;j < len2;++j) {
             let sprite = trafficLightsG[ldEdge][ldStatus.length + j];
-            //let anglestr = {'g': 'straight', 'r': 'left', 'i': 'right'}[ldStatus[j]];
             let anglestr = ldStatus[j];
             setAngle(sprite, anglestr, sprite.pointX, sprite.pointY, sprite.angleHeight);
         }

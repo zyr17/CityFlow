@@ -627,18 +627,6 @@ namespace CityFlow {
             updateLog();
         }
 
-        //没有变道全部激活；变道的激活一种
-        for (auto lane : roadnet.getLanes())
-            if (lane->isDirectionChangeLane()) {
-                auto nowDirection = lane->getActivatedDirection();
-                for (auto lanelink : lane->getLaneLinks())
-                    assert(lanelink->isActivated() == (nowDirection == lanelink->getRoadLinkType()));
-            }
-            else {
-                for (auto lanelink : lane->getLaneLinks())
-                    assert(lanelink->isActivated());
-            }
-
         step += 1;
     }
 
