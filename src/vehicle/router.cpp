@@ -18,6 +18,17 @@ namespace CityFlow {
 
     Drivable *Router::getFirstDrivable() const {
         const std::vector<Lane *> &lanes = route[0]->getLanePointers();
+
+        //GTest code
+        if (GTestInjectSwitch.Router_getFirstDrivable_random) {
+            if (!GTestInjectSwitch.Router_getFirstDrivable_random_notify){
+                GTestInjectSwitch.Router_getFirstDrivable_random_notify = true;
+                std::cout << "swtich Router_getFirstDrivable_random opened.\n";
+            }
+            return lanes[(*rnd)() % lanes.size()];
+        }
+        //GTest code over
+
         if (route.size() == 1) {
             return selectLane(nullptr, lanes);
         } else {

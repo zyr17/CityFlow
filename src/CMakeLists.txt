@@ -17,6 +17,7 @@ set(PROJECT_HEADER_FILES
 set(PROJECT_SOURCE_FILES
     utility/utility.cpp
     utility/barrier.cpp
+    utility/config.cpp
     engine/archive.cpp
     engine/engine.cpp
     flow/flow.cpp

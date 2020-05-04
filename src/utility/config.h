@@ -31,6 +31,16 @@
     #define protected public
 #endif
 
+class GTestInjectSwitchClass {
+public:
+    bool Router_getFirstDrivable_random;
+    bool Router_getFirstDrivable_random_notify;
+    void clear() {
+        memset(this, 0, sizeof this);
+    }
+};
+extern GTestInjectSwitchClass GTestInjectSwitch;
+
 namespace CityFlow {
     const int MAX_NUM_CARS_ON_SEGMENT = 10;
 }

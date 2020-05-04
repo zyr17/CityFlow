@@ -8,25 +8,6 @@
 
 using namespace CityFlow;
 
-void pushVehicle(Engine &engine, std::vector<std::string> &roads, double maxspeed = 16.67, double posAcc = 4.5, double negAcc = 2.0, double headwayTime = 1.5) {
-    std::map<std::string, double> vt;
-    vt["length"] = 5.0;
-    vt["width"] = 2.0;
-    vt["maxPosAcc"] = posAcc;
-    vt["maxNegAcc"] = negAcc;
-    vt["usualPosAcc"] = posAcc;
-    vt["usualNegAcc"] = negAcc;
-    vt["minGap"] = 2.5;
-    vt["maxSpeed"] = maxspeed;
-    vt["headwayTime"] = headwayTime;
-    engine.pushVehicle(vt, roads);
-}
-
-void neverStopRandomSpeed(Engine &engine, std::vector<std::string> &roads, double minSpeed = 1, double maxSpeed = 30) {
-    double speed = minSpeed + rand() * 1.0 / RAND_MAX * (maxSpeed - minSpeed);
-    pushVehicle(engine, roads, speed, 999999999, 0, 0);
-}
-
 int main(int argc, char const *argv[]) {
     optionparser::OptionParser parser;
 

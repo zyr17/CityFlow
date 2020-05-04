@@ -13,3 +13,5 @@ cmake-build-*
 frontend/replay/*
 *.vcxproj*
 bin/
+*replay.txt
+*replay_roadnet.json
