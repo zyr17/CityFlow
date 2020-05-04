@@ -1,9 +1,9 @@
 #ifndef CITYFLOW_TRAFFICLIGHT_H
 #define CITYFLOW_TRAFFICLIGHT_H
 
-#include "utility/config.h"
-
 #include <vector>
+
+#include "utility/config.h"
 
 namespace CityFlow {
     class Intersection;

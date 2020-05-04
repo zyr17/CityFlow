@@ -1,12 +1,12 @@
 #ifndef CITYFLOW_ROUTER
 #define CITYFLOW_ROUTER
 
-#include "engine/archive.h"
-#include "utility/config.h"
-
 #include <vector>
 #include <random>
 #include <memory>
+
+#include "engine/archive.h"
+#include "utility/config.h"
 
 namespace CityFlow {
     class Road;

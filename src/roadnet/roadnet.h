@@ -1,14 +1,14 @@
 #ifndef CITYFLOW_ROADNET_H
 #define CITYFLOW_ROADNET_H
 
-#include "roadnet/trafficlight.h"
-#include "utility/utility.h"
-#include "utility/config.h"
-
 #include <list>
 #include <map>
 #include <queue>
 #include <iostream>
+
+#include "roadnet/trafficlight.h"
+#include "utility/utility.h"
+#include "utility/config.h"
 
 namespace CityFlow {
     class RoadNet;

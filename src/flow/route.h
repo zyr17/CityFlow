@@ -1,9 +1,9 @@
 #ifndef CITYFLOW_ROUTE_H
 #define CITYFLOW_ROUTE_H
 
-#include "utility/config.h"
-
 #include <vector>
+
+#include "utility/config.h"
 
 namespace CityFlow {
     class Road;
