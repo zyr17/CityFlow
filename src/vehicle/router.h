@@ -2,6 +2,7 @@
 #define CITYFLOW_ROUTER
 
 #include "engine/archive.h"
+#include "utility/config.h"
 
 #include <vector>
 #include <random>

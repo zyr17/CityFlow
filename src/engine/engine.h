@@ -5,6 +5,7 @@
 #include "roadnet/roadnet.h"
 #include "engine/archive.h"
 #include "utility/barrier.h"
+#include "utility/config.h"
 
 #include <mutex>
 #include <thread>

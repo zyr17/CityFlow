@@ -3,6 +3,7 @@
 
 #include "roadnet/trafficlight.h"
 #include "utility/utility.h"
+#include "utility/config.h"
 
 #include <list>
 #include <map>

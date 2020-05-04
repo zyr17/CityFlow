@@ -3,6 +3,7 @@
 
 #include "rapidjson/document.h"
 #include "dtoa_milo.h"
+#include "utility/config.h"
 
 #include <vector>
 #include <cmath>

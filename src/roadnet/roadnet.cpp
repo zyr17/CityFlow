@@ -1,5 +1,4 @@
 #include "roadnet/roadnet.h"
-#include "utility/config.h"
 #include "vehicle/vehicle.h"
 
 #include "rapidjson/document.h"

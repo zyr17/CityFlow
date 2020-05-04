@@ -1,6 +1,8 @@
 #ifndef CITYFLOW_TRAFFICLIGHT_H
 #define CITYFLOW_TRAFFICLIGHT_H
 
+#include "utility/config.h"
+
 #include <vector>
 
 namespace CityFlow {

@@ -5,6 +5,7 @@
 
 #include "vehicle/vehicle.h"
 #include "flow/route.h"
+#include "utility/config.h"
 
 namespace CityFlow {
     class Engine;

@@ -4,6 +4,7 @@
 #include "rapidjson/document.h"
 #include "rapidjson/allocators.h"
 #include "roadnet/roadnet.h"
+#include "utility/config.h"
 
 #include <deque>
 

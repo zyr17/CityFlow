@@ -1,5 +1,6 @@
 #ifndef CITYFLOW_BARRIER_H
 #define CITYFLOW_BARRIER_H
+#include "utility/config.h"
 #include <cassert>
 #include <chrono>
 #include <condition_variable>

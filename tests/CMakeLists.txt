@@ -1,6 +1,8 @@
 file(GLOB TEST_SRCS cpp/*.cpp)
 set(FLAGS "-fsanitize=address -fno-omit-frame-pointer")
 include_directories(${GTEST_INCLUDE_DIRS})
+add_definitions("-DGTEST_PUBLIC")
+add_definitions("-D_XKEYCHECK_H")
 foreach(SRC_PATH ${TEST_SRCS})
     get_filename_component(SRC_NAME ${SRC_PATH} NAME)
     string(REPLACE ".cpp" "" EXE_NAME ${SRC_NAME})

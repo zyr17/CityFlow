@@ -1,4 +1,14 @@
 #include "engine/engine.h"
+
+#ifdef _XKEYCHECK_H
+    #ifdef public
+        #undef public
+    #endif
+    #ifdef protected
+        #undef protected
+    #endif
+#endif
+
 #include <string>
 #include <cstdlib>
 #include <gtest/gtest.h>
@@ -15,6 +25,21 @@ TEST(Basic, Basic) {
     for (size_t i = 0; i < totalStep; i++) {
         engine.nextStep();
     }
+    SUCCEED();
+}
+
+TEST(Basic, Macro) {
+#ifdef GTEST_PUBLIC
+    SUCCEED();
+#else
+    FAIL();
+#endif
+}
+
+TEST(Basic, Private){
+    Engine engine(configFile, threads);
+    ASSERT_EQ(engine.threadNum, threads);
+    engine.nextStep();
     SUCCEED();
 }
 
