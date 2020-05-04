@@ -1,12 +1,10 @@
 #include "engine/engine.h"
 
-#ifdef _XKEYCHECK_H
-    #ifdef public
-        #undef public
-    #endif
-    #ifdef protected
-        #undef protected
-    #endif
+#ifdef public
+    #undef public
+#endif
+#ifdef protected
+    #undef protected
 #endif
 
 #include <string>
