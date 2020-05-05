@@ -172,6 +172,35 @@ namespace InvalidLaneLaneChangeTest {
 
 }
 
+namespace DirectionChangeLanesTest {
+    TEST(DirectionChangeLanesTest, Basic) {
+        size_t totalStep = 10000;
+        int assertTimes = 0;
+        Engine engine(directionchangeConfig, threads);
+        for (size_t i = 0; i < totalStep; i++) {
+            if (i % 1000 == 0)
+                engine.setLaneDirection("road_0_1_0_2", i % 2000 ? "go_straight" : "turn_left");
+            engine.nextStep();
+            for (auto lane : engine.roadnet.getLanes())
+                if (lane->isDirectionChangeLane()) {
+                    auto nowDirection = lane->getActivatedDirection();
+                    for (auto lanelink : lane->getLaneLinks()) {
+                        assert(lanelink->isActivated() == (nowDirection == lanelink->getRoadLinkType()));
+                        assertTimes++;
+                    }
+                }
+                else {
+                    for (auto lanelink : lane->getLaneLinks()) {
+                        assert(lanelink->isActivated());
+                        assertTimes++;
+                    }
+                }
+        }
+        std::cout << "assert times: " << assertTimes << std::endl;
+        SUCCEED();
+    }
+}
+
 int main(int argc, char* argv[]) {
     testing::InitGoogleTest(&argc, argv);
     return RUN_ALL_TESTS();
