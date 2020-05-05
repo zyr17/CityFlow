@@ -288,6 +288,10 @@ namespace CityFlow {
         virtual std::string getId() const = 0;
     };
 
+    enum RoadLinkType {
+        go_straight = 3, turn_left = 2, turn_right = 1
+    };
+
     class Lane : public Drivable {
 
         friend class RoadNet;
@@ -300,6 +304,9 @@ namespace CityFlow {
         std::vector<LaneLink *> laneLinks;
         Road *belongRoad = nullptr;
         std::deque<Vehicle *> waitingBuffer;
+        std::vector<LaneLink*> differentDirectionLaneLinks[4];
+        bool directionChange = false;
+        RoadLinkType activatedDirection = RoadLinkType::go_straight;
 
         struct HistoryRecord {
             int vehicleNum;
@@ -395,11 +402,14 @@ namespace CityFlow {
 
         void sortVehicles() override;
 
-    };
+        bool isDirectionChangeLane() const { return directionChange; }
 
+        void pushLaneLink(LaneLink *laneLink);
 
-    enum RoadLinkType {
-        go_straight = 3, turn_left = 2, turn_right = 1
+        RoadLinkType getActivatedDirection() const { return activatedDirection; }
+
+        void setActivatedDirection(RoadLinkType direction);
+
     };
 
     class RoadLink {
@@ -436,6 +446,8 @@ namespace CityFlow {
 
         void reset();
 
+        RoadLinkType getType() const { return type; }
+
     };
 
     class LaneLink : public Drivable {
@@ -449,6 +461,7 @@ namespace CityFlow {
         Lane *startLane = nullptr;
         Lane *endLane = nullptr;
         std::vector<Cross *> crosses;
+        bool activated = true;
 
     public:
         LaneLink() {
@@ -480,6 +493,10 @@ namespace CityFlow {
         std::string getId() const override {
             return (startLane ? startLane->getId() : "") + "_TO_" + (endLane ? endLane->getId() : "");
         }
+
+        void setActivate(bool activate) { activated = activate; }
+
+        bool isActivated() const { return activated; }
     };
 
 
@@ -494,6 +511,7 @@ namespace CityFlow {
         std::vector<Lane *> lanes;
         std::vector<LaneLink *> laneLinks;
         std::vector<Drivable *> drivables;
+        std::map<std::string, Lane *> directionChangeLanes;
         Point getPoint(const Point &p1, const Point &p2, double a);
 
     public:
@@ -531,6 +549,10 @@ namespace CityFlow {
 
         const std::vector<Drivable *> &getDrivables() const {
             return drivables;
+        }
+
+        const std::map<std::string, Lane *> &getDirectionChangeLanes() const {
+            return directionChangeLanes;
         }
 
         void reset();

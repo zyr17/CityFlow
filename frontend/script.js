@@ -5,12 +5,12 @@ id = Math.random().toString(36).substring(2, 15);
 
 BACKGROUND_COLOR = 0xe8ebed;
 LANE_COLOR = 0x586970;
-LANE_BORDER_WIDTH = 1;
+LANE_BORDER_WIDTH = 0.5;
 LANE_BORDER_COLOR = 0x82a8ba;
 LANE_INNER_COLOR = 0xbed8e8;
 LANE_DASH = 10;
 LANE_GAP = 12;
-TRAFFIC_LIGHT_WIDTH = 3;
+TRAFFIC_LIGHT_WIDTH = 2;
 MAX_TRAFFIC_LIGHT_NUM = 100000;
 ROTATE = 90;
 
@@ -34,6 +34,8 @@ TURN_SIGNAL_COLOR = 0xFFFFFF;
 TURN_SIGNAL_WIDTH   = 1;
 TURN_SIGNAL_LENGTH  = 5;
 
+ANGLE_LENGTH_RATIO = 4.5;
+
 var simulation, roadnet, steps;
 var nodes = {};
 var edges = {};
@@ -49,6 +51,27 @@ let Application = PIXI.Application,
     Rectangle = PIXI.Rectangle
 ;
 
+function setAngle(sprite, anglestr, pointX, pointY, height = null) {
+    let expectHeight = 600;
+    let roadWidth = pointX.distanceTo(pointY);
+    if (height == null) height = roadWidth * ANGLE_LENGTH_RATIO;
+    let expectWidth = anglesDataURL[anglestr][0];
+    let width = expectWidth / expectHeight * height;
+    let direction = pointX.directTo(pointY);
+    let insideDirection = direction.rotate(ROTATE);
+    let picPoint = pointX
+                   .moveAlong(direction, (roadWidth - width) / 2)
+                   .moveAlong(insideDirection, height / expectHeight * (expectHeight - anglesDataURL[anglestr][1]));
+    let picangle = direction;
+    sprite.texture = anglesDataURL[anglestr][3];
+    sprite.rotation = Math.atan2(picangle.y, picangle.x);
+    sprite.x = picPoint.x;
+    sprite.y = picPoint.y;
+    sprite.width = sprite.texture.width;
+    sprite.height = sprite.texture.height;
+    sprite.scale.set(width / expectWidth);
+}
+
 var controls = new function () {
     this.replaySpeedMax = 1;
     this.replaySpeedMin = 0.01;
@@ -58,7 +81,7 @@ var controls = new function () {
 
 var trafficLightsG = {};
 
-var app, viewport, renderer, simulatorContainer, carContainer, trafficLightContainer;
+var app, viewport, renderer, simulatorContainer, carContainer, trafficLightContainer, angleContainer;
 var turnSignalContainer;
 var carPool;
 
@@ -337,6 +360,9 @@ function drawRoadnet() {
     edges = [];
     trafficLightsG = {};
 
+    for (let i in anglesDataURL)
+        anglesDataURL[i][3] = Texture.fromImage(anglesDataURL[i][2]);
+
     for (let i = 0, len = roadnet.nodes.length;i < len;++i) {
         node = roadnet.nodes[i];
         node.point = new Point(transCoord(node.point));
@@ -357,6 +383,7 @@ function drawRoadnet() {
      * Draw Map
      */
     trafficLightContainer = new ParticleContainer(MAX_TRAFFIC_LIGHT_NUM, {tint: true});
+    angleContainer = new Container();
     let mapContainer, mapGraphics;
     if (debugMode) {
         mapContainer = new Container();
@@ -392,6 +419,7 @@ function drawRoadnet() {
     simulatorContainer.pivot.set(bounds.x + bounds.width / 2, bounds.y + bounds.height / 2);
     simulatorContainer.position.set(renderer.width / 2, renderer.height / 2);
     simulatorContainer.addChild(trafficLightContainer);
+    simulatorContainer.addChild(angleContainer);
 
     /**
      * Settings for Cars
@@ -584,6 +612,22 @@ function drawEdge(edge, graphics) {
                 prevOffset = offset;
                 trafficLightContainer.addChild(light);
             }
+            prevOffset = offset = 0;
+            let minWidth = 1e100;
+            for (let i = 0; i < edge.nLane; i ++ )
+                if (edge.laneWidths[i] < minWidth)
+                    minWidth = edge.laneWidths[i];
+            for (lane = 0; lane < edge.nLane;++lane) {
+                offset += edge.laneWidths[lane];
+                let angle = new Sprite(anglesDataURL['straight'][3]);
+                angle.pointX = pointB.moveAlong(pointBOffset, prevOffset);
+                angle.pointY = pointB.moveAlong(pointBOffset, offset);
+                angle.angleHeight = minWidth * ANGLE_LENGTH_RATIO;
+                angle.x = angle.y = 100;
+                angleContainer.addChild(angle);
+                edgeTrafficLights.push(angle);
+                prevOffset = offset;
+            }
             trafficLightsG[edge.id] = edgeTrafficLights;
         }
 
@@ -683,10 +727,10 @@ function drawStep(step) {
         chart.addData(chartLog[step]);
     }
 
-    let [carLogs, tlLogs] = logs[step].split(';');
-
+    let [carLogs, tlLogs, ldLogs] = logs[step].split(';');
     tlLogs = tlLogs.split(',');
     carLogs = carLogs.split(',');
+    ldLogs = ldLogs.split(',');
     
     let tlLog, tlEdge, tlStatus;
     for (let i = 0, len = tlLogs.length;i < len;++i) {
@@ -700,6 +744,18 @@ function drawStep(step) {
             }else{
                 trafficLightsG[tlEdge][j].alpha = 1;
             }
+        }
+    }
+
+    let ldLog, ldEdge, ldStatus;
+    for (let i = 0, len = ldLogs.length;i < len;++i) {
+        ldLog = ldLogs[i].split(' ');
+        ldEdge = ldLog[0];
+        ldStatus = ldLog.slice(1);
+        for (let j = 0, len2 = ldStatus.length;j < len2;++j) {
+            let sprite = trafficLightsG[ldEdge][ldStatus.length + j];
+            let anglestr = ldStatus[j];
+            setAngle(sprite, anglestr, sprite.pointX, sprite.pointY, sprite.angleHeight);
         }
     }
 

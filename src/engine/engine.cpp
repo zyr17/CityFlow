@@ -79,6 +79,8 @@ namespace CityFlow {
 
     bool Engine::loadRoadNet(const std::string &jsonFile) {
         bool ans = roadnet.loadFromJson(jsonFile);
+        if (!rlTrafficLight && roadnet.getDirectionChangeLanes().size())
+            std::cerr << "warning: find direction change lanes, but rlTrafficLight is not set." << std::endl;
         int cnt = 0;
         for (Road &road : roadnet.getRoads()) {
             threadRoadPool[cnt].push_back(&road);
@@ -549,12 +551,33 @@ namespace CityFlow {
 
                 bool can_go = true;
                 for (LaneLink *laneLink : lane.getLaneLinks()) {
-                    if (!laneLink->isAvailable()) {
+                    if (laneLink->getRoadLinkType() == lane.getActivatedDirection() && !laneLink->isAvailable()) {
                         can_go = false;
                         break;
                     }
                 }
                 result.append(can_go ? " g" : " r");
+            }
+            result.append(",");
+        }
+        result.append(";");
+        for (const Road& road : roadnet.getRoads()) {
+            if (road.getEndIntersection().isVirtualIntersection())
+                continue;
+            result.append(road.getId());
+            for (const Lane& lane : road.getLanes()) {
+                auto direction = lane.getActivatedDirection();
+                switch (direction) {
+                case RoadLinkType::go_straight:
+                    result.append(" straight");
+                    break;
+                case RoadLinkType::turn_left:
+                    result.append(" left");
+                    break;
+                case RoadLinkType::turn_right:
+                    result.append(" right");
+                    break;
+                }
             }
             result.append(",");
         }
@@ -855,6 +878,21 @@ namespace CityFlow {
             Vehicle *leader = vehicle->getLeader();
             if (leader) return leader->getId();
             else return "";
+        }
+    }
+
+    void Engine::setLaneDirection(const std::string& lane, const std::string& direction) {
+        auto &lanes = roadnet.getDirectionChangeLanes();
+        if (lanes.find(lane) == lanes.end()) {
+            throw std::runtime_error("direction changable lane '" + lane + "' not found");
+        }
+        else {
+            RoadLinkType rl;
+            if (direction == "go_straight") rl = RoadLinkType::go_straight;
+            else if (direction == "turn_left") rl = RoadLinkType::turn_left;
+            else if (direction == "turn_right") rl = RoadLinkType::turn_right;
+            else throw std::runtime_error("Direction '" + direction + "' not valid, must be go_straight, turn_left or turn_right");
+            lanes.find(lane)->second->setActivatedDirection(rl);
         }
     }
 
