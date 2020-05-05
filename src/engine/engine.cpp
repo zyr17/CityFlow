@@ -769,9 +769,9 @@ namespace CityFlow {
 
     Engine::~Engine() {
         logOut.close();
-        finished = true;
         for (int i = 0; i < (laneChange ? 9 : 6); ++i) {
             startBarrier.wait();
+            if (!i) finished = true;
             endBarrier.wait();
         }
         for (auto &thread : threadPool) thread.join();
