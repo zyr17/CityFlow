@@ -105,6 +105,23 @@ Data Access API
 - Get vehicle ids on each lane.
 - Return a ``dict`` with lane id as key and list of vehicle id as value.
 
+``get_vehicle_info(vehicle_id)``:
+
+- Return a ``dict`` which contains information of the given vehicle.
+- The items include:
+
+    + ``running``: whether the vehicle is running.
+    + If the vehicle is running:
+
+        * ``speed``: The speed of the vehicle.
+        * ``distance``: The distance the vehicle has travelled on the current lane or lanelink.
+        * ``drivable``: The id of the current drivable(lane or lanelink)
+        * ``road``: The id of the current road if the vehicle is running on a lane.
+        * ``intersection``: The next intersection if the vehicle is running on a lane.
+        * ``route``: A string contains ids of following roads in the vehicle's route which are separated by ``' '``.
+
+- Note that all items are stored as ``str``.
+
 ``get_vehicle_speed()``:
 
 - Get speed of each vehicle
@@ -184,6 +201,15 @@ Control API
 - Set seed of random generator to ``seed``
 
 .. _set-replay-file:
+
+
+``set_vehicle_route(vehicle_id, route)``:
+
+- To change the route of a vehicle during its travelling.
+- `route` is a list of road ids (doesn't include the current road)
+- Return true if the route is available and can be connected.
+
+
 
 Other API
 ---------

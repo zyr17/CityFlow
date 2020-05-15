@@ -36,7 +36,7 @@ namespace CityFlow {
             DYNAMIC // TODO: dynamic routing
         };
 
-        RouterType type = RouterType::DURATION;
+        RouterType type = RouterType::LENGTH;
 
     public:
 
@@ -70,10 +70,13 @@ namespace CityFlow {
             this->vehicle = vehicle;
         }
 
-
         bool dijkstra(Road *start, Road *end, std::vector<Road *> &buffer);
 
         bool updateShortestPath();
+
+        bool setRoute(const std::vector<Road *> &anchor);
+
+        std::vector<Road *> getFollowingRoads() const;
     };
 }
 
