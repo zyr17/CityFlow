@@ -893,6 +893,8 @@ namespace CityFlow {
             else if (direction == "turn_right") rl = RoadLinkType::turn_right;
             else throw std::runtime_error("Direction '" + direction + "' not valid, must be go_straight, turn_left or turn_right");
             lanes.find(lane)->second->setActivatedDirection(rl);
+        }
+    }
 
     bool Engine::setRoute(const std::string &vehicle_id, const std::vector<std::string> &anchor_id) {
         auto vehicle_itr = vehicleMap.find(vehicle_id);
