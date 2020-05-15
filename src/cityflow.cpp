@@ -20,6 +20,7 @@ PYBIND11_MODULE(cityflow, m) {
         .def("get_lane_waiting_vehicle_count", &CityFlow::Engine::getLaneWaitingVehicleCount)
         .def("get_lane_vehicles", &CityFlow::Engine::getLaneVehicles)
         .def("get_vehicle_speed", &CityFlow::Engine::getVehicleSpeed)
+        .def("get_vehicle_info", &CityFlow::Engine::getVehicleInfo, "vehicle_id"_a)
         .def("get_vehicle_distance", &CityFlow::Engine::getVehicleDistance)
         .def("get_leader", &CityFlow::Engine::getLeader, "vehicle_id"_a)
         .def("get_current_time", &CityFlow::Engine::getCurrentTime)
@@ -33,7 +34,8 @@ PYBIND11_MODULE(cityflow, m) {
         .def("reset", &CityFlow::Engine::reset, "seed"_a=false)
         .def("load", &CityFlow::Engine::load, "archive"_a)
         .def("snapshot", &CityFlow::Engine::snapshot)
-        .def("load_from_file", &CityFlow::Engine::loadFromFile, "path"_a);
+        .def("load_from_file", &CityFlow::Engine::loadFromFile, "path"_a)
+        .def("set_vehicle_route", &CityFlow::Engine::setRoute, "vehicle_id"_a, "route"_a);
 
     py::class_<CityFlow::Archive>(m, "Archive")
         .def(py::init<const CityFlow::Engine&>())
