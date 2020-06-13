@@ -101,7 +101,7 @@ TEST(Basic, allExamples) {
 TEST(Basic, threads) {
     size_t totalStep = 3000;
     int step = threads / 4;
-    step = step ? step : 0;
+    step = step ? step : 1;
     
     for (int thread = 1; thread <= threads; thread += step) {
         auto startTime = clock();
@@ -112,6 +112,73 @@ TEST(Basic, threads) {
         printf("Thred Number: %d, Time: %.3f sec\n", thread, (clock() - startTime) * 1.0 / CLOCKS_PER_SEC);
     }
     SUCCEED();
+}
+
+std::string randString(int length = 32) {
+    std::string basic = "0123456789qazwsxedcrfvtgbyhnujmikolp";
+    std::string res;
+    for (; length; length--)
+        res += basic[rand() % basic.size()];
+    return res;
+}
+
+TEST(Basic, changeLogFile) {
+    size_t totalStep = 200;
+    std::string roadFile = randString(), logFile = randString();
+    std::string logFile2 = randString();
+
+    {
+        Engine engine(configFile, threads);
+
+        engine.setLogFile(roadFile, logFile);
+
+        for (size_t i = 0; i < totalStep; i++) {
+            engine.nextStep();
+        }
+    }
+
+    FILE *roadf = fopen(roadFile.c_str(), "r"), *logf = fopen(logFile.c_str(), "r");
+    EXPECT_TRUE(roadf);
+    EXPECT_TRUE(logf);
+    fclose(roadf);
+    fclose(logf);
+
+    std::string e2dir;
+
+    {
+        Engine engine2(configFile, threads);
+        e2dir = engine2.dir;
+
+        engine2.setReplayLogFile(logFile2);
+
+        for (size_t i = 0; i < totalStep; i++) {
+            engine2.nextStep();
+        }
+    }
+
+    FILE *logf2 = fopen(logFile.c_str(), "r");
+    EXPECT_TRUE(logf);
+    fclose(logf2);
+
+    std::string windows = "powershell.exe -Command \"rm -force %s\"";
+    std::string linux = "bash -c \"rm -f %s\"";
+
+    std::string cmd;
+#ifdef WIN32
+    cmd = windows;
+#else
+    cmd = linux;
+#endif
+
+    char buffer[150];
+
+    sprintf(buffer, cmd.c_str(), roadFile.c_str());
+    system(buffer);
+    sprintf(buffer, cmd.c_str(), logFile.c_str());
+    system(buffer);
+    sprintf(buffer, cmd.c_str(), (e2dir + logFile2).c_str());
+    system(buffer);
+
 }
 
 namespace InvalidLaneLaneChangeTest {

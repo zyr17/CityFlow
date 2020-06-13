@@ -805,6 +805,7 @@ namespace CityFlow {
         if (!writeJsonToFile(jsonFile, jsonRoot)) {
             std::cerr << "write roadnet log file error" << std::endl;
         }
+        if (logOut.is_open()) logOut.close();
         logOut.open(logFile);
     }
 
