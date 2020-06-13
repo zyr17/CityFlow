@@ -160,14 +160,14 @@ TEST(Basic, changeLogFile) {
     EXPECT_TRUE(logf);
     fclose(logf2);
 
-    std::string windows = "powershell.exe -Command \"rm -force %s\"";
-    std::string linux = "bash -c \"rm -f %s\"";
+    std::string windowscmd = "powershell.exe -Command \"rm -force %s\"";
+    std::string linuxcmd = "bash -c \"rm -f %s\"";
 
     std::string cmd;
 #ifdef WIN32
-    cmd = windows;
+    cmd = windowscmd;
 #else
-    cmd = linux;
+    cmd = linuxcmd;
 #endif
 
     char buffer[150];
