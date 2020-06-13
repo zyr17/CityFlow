@@ -30,7 +30,7 @@ namespace CityFlow {
             Engine *engine, double startTime, double endTime, const std::string &id) 
             : vehicleTemplate(vehicleTemplate), interval(timeInterval),
               startTime(startTime), endTime(endTime), engine(engine), id(id) {
-            assert(timeInterval >= 1 || (startTime == endTime));
+            assert(timeInterval > 0);
             nowTime = interval;
         }
 

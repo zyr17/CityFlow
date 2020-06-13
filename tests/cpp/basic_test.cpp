@@ -6,13 +6,23 @@
 
 using namespace CityFlow;
 
-size_t threads = std::min(std::thread::hardware_concurrency(), 4u);
-std::string exampleConfig = "../json/example/config.json";
-std::string allpassConfig = "../json/allpass/config.json";
-std::string directionchangeConfig = "../json/directionchange/config.json";
-std::string linkallConfig = "../json/linkall/config.json";
-std::string oneroadConfig = "../json/oneroad/config.json";
-std::string configFile = exampleConfig;
+size_t threads = std::min(std::thread::hardware_concurrency(), 16u);
+
+std::vector<std::string> exampleFolders = {
+    "example",
+    "allpass",
+    "directionchange",
+    "linkall",
+    "oneroad",
+    "floatendflow",
+    "dense",
+};
+
+std::string configFilePos(std::string folder) {
+    return "../json/" + folder + "/config.json";
+}
+
+std::string configFile = configFilePos("example");
 
 extern GTestInjectSwitchClass GTestInjectSwitch;
 
@@ -72,6 +82,35 @@ TEST(Basic, reset) {
     }
     EXPECT_EQ(engine.getCurrentTime(), curTime);
     EXPECT_EQ(engine.getVehicles().size(), vehCnt);
+    SUCCEED();
+}
+
+TEST(Basic, allExamples) {
+    size_t totalStep = 1000;
+
+    for (auto folder : exampleFolders) {
+        printf("----- Evaluating Example %s -----\n", folder.c_str());
+        Engine engine(configFilePos(folder), threads);
+        for (size_t i = 0; i < totalStep; i++)
+            engine.nextStep();
+        printf("Finished vehicles: %d, Running vehicles: %d\n", engine.finishedVehicleCnt, engine.getVehicleCount());
+    }
+    SUCCEED();
+}
+
+TEST(Basic, threads) {
+    size_t totalStep = 3000;
+    int step = threads / 4;
+    step = step ? step : 0;
+    
+    for (int thread = 1; thread <= threads; thread += step) {
+        auto startTime = clock();
+        Engine engine(configFilePos("dense"), thread);
+        engine.setSaveReplay(false);
+        for (size_t i = 0; i < totalStep; i++)
+            engine.nextStep();
+        printf("Thred Number: %d, Time: %.3f sec\n", thread, (clock() - startTime) * 1.0 / CLOCKS_PER_SEC);
+    }
     SUCCEED();
 }
 
@@ -135,7 +174,7 @@ namespace InvalidLaneLaneChangeTest {
 
     TEST(InvalidLaneLaneChange, Basic) {
         size_t totalStep = 1000;
-        Engine engine(exampleConfig, threads);
+        Engine engine(configFilePos("example"), threads);
         int assertTimes = 0;
         for (size_t i = 0; i < totalStep; i++) {
             assertTimes += InvalidLaneLaneChangeStep(engine);
@@ -146,7 +185,7 @@ namespace InvalidLaneLaneChangeTest {
 
     TEST(InvalidLaneLaneChange, FixedSpeed) {
         size_t totalStep = 10000;
-        Engine engine(oneroadConfig, threads);
+        Engine engine(configFilePos("oneroad"), threads);
         int assertTimes = 0;
         std::vector<std::string> vec = { "road_0", "road_1" };
         for (size_t i = 0; i < totalStep; i++) {
@@ -160,7 +199,7 @@ namespace InvalidLaneLaneChangeTest {
     TEST(InvalidLaneLaneChange, RandomStart) {
         GTestInjectSwitch.Router_getFirstDrivable_random = true;
         size_t totalStep = 1000;
-        Engine engine(exampleConfig, threads);
+        Engine engine(configFilePos("example"), threads);
         int assertTimes = 0;
         for (size_t i = 0; i < totalStep; i++) {
             assertTimes += InvalidLaneLaneChangeStep(engine);
@@ -176,7 +215,7 @@ namespace DirectionChangeLanesTest {
     TEST(DirectionChangeLanesTest, Basic) {
         size_t totalStep = 10000;
         int assertTimes = 0;
-        Engine engine(directionchangeConfig, threads);
+        Engine engine(configFilePos("directionchange"), threads);
         for (size_t i = 0; i < totalStep; i++) {
             if (i % 1000 == 0)
                 engine.setLaneDirection("road_0_1_0_2", i % 2000 ? "go_straight" : "turn_left");
