@@ -801,12 +801,22 @@ namespace CityFlow {
         for (auto &vehiclePair : vehiclePool) delete vehiclePair.second.first;
     }
     
-    void Engine::setLogFile(const std::string &jsonFile, const std::string &logFile) {
+    void Engine::setLogFile(const std::string &jsonFile, const std::string &logFile, bool isMove) {
         if (!writeJsonToFile(jsonFile, jsonRoot)) {
             std::cerr << "write roadnet log file error" << std::endl;
         }
         if (logOut.is_open()) logOut.close();
         logOut.open(logFile);
+        if (isMove) {
+            FILE* f = fopen(nowReplayLogFile.c_str(), "r");
+            char c;
+            while ((c = getc(f)) != EOF) logOut.put(c);
+            fclose(f);
+            Utils::removeFile(nowRoadnetLogFile);
+            Utils::removeFile(nowReplayLogFile);
+        }
+        nowRoadnetLogFile = jsonFile;
+        nowReplayLogFile = logFile;
     }
 
     std::vector<const Vehicle *> Engine::getRunningVehicles(bool includeWaiting) const {
@@ -923,4 +933,21 @@ namespace CityFlow {
         }
     }
 
+}
+
+void Utils::removeFile(std::string filename) {
+    std::string windowscmd = "powershell.exe -Command \"rm -force %s\"";
+    std::string linuxcmd = "bash -c \"rm -f %s\"";
+
+    std::string cmd;
+#ifdef WIN32
+    cmd = windowscmd;
+#else
+    cmd = linuxcmd;
+#endif
+
+    char buffer[150];
+
+    sprintf(buffer, cmd.c_str(), filename.c_str());
+    system(buffer);
 }

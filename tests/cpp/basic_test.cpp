@@ -109,7 +109,7 @@ TEST(Basic, threads) {
         engine.setSaveReplay(false);
         for (size_t i = 0; i < totalStep; i++)
             engine.nextStep();
-        printf("Thred Number: %d, Time: %.3f sec\n", thread, (clock() - startTime) * 1.0 / CLOCKS_PER_SEC);
+        printf("Thread Number: %d, Time: %.3f sec\n", thread, (clock() - startTime) * 1.0 / CLOCKS_PER_SEC);
     }
     SUCCEED();
 }
@@ -142,27 +142,53 @@ TEST(Basic, changeLogFile) {
     EXPECT_TRUE(logf);
     fclose(roadf);
     fclose(logf);
+    Utils::removeFile(roadFile);
+    Utils::removeFile(logFile);
 
-    std::string e2dir;
+    std::string edir;
 
     {
-        Engine engine2(configFile, threads);
-        e2dir = engine2.dir;
+        Engine engine(configFile, threads);
+        edir = engine.dir;
 
-        engine2.setReplayLogFile(logFile2);
+        engine.setReplayLogFile(logFile2);
 
         for (size_t i = 0; i < totalStep; i++) {
-            engine2.nextStep();
+            engine.nextStep();
         }
     }
 
-    FILE *logf2 = fopen(logFile.c_str(), "r");
-    EXPECT_TRUE(logf);
+    FILE *logf2 = fopen((edir + logFile2).c_str(), "r");
+    EXPECT_TRUE(logf2);
     fclose(logf2);
+    Utils::removeFile(edir + logFile2);
 
+    std::string moveRoadFile = randString(), moveLogFile = randString();
+    std::string oldRoadFile, oldLogFile;
+    {
+        Engine engine(configFile, threads);
+        oldRoadFile = engine.nowRoadnetLogFile;
+        oldLogFile = engine.nowReplayLogFile;
+        engine.setLogFile(moveRoadFile, moveLogFile, true);
+        for (size_t i = 0; i < totalStep; i++) {
+            engine.nextStep();
+        }
+    }
+    FILE* roadmf = fopen(moveRoadFile.c_str(), "r"), * logmf = fopen(moveLogFile.c_str(), "r");
+    EXPECT_TRUE(roadmf);
+    EXPECT_TRUE(logmf);
+    FILE* roadof = fopen(oldRoadFile.c_str(), "r"), * logof = fopen(oldLogFile.c_str(), "r");
+    EXPECT_FALSE(roadof);
+    EXPECT_FALSE(logof);
+    fclose(roadmf);
+    fclose(logmf);
+    Utils::removeFile(moveRoadFile);
+    Utils::removeFile(moveLogFile);
+
+    /*
     std::string windowscmd = "powershell.exe -Command \"rm -force %s\"";
     std::string linuxcmd = "bash -c \"rm -f %s\"";
-
+    
     std::string cmd;
 #ifdef WIN32
     cmd = windowscmd;
@@ -178,6 +204,7 @@ TEST(Basic, changeLogFile) {
     system(buffer);
     sprintf(buffer, cmd.c_str(), (e2dir + logFile2).c_str());
     system(buffer);
+    */
 
 }
 

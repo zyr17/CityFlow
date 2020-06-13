@@ -7,6 +7,9 @@
 #include "utility/barrier.h"
 #include "utility/config.h"
 
+namespace Utils {
+    void removeFile(std::string filename);
+}
 
 namespace CityFlow {
 
@@ -54,6 +57,9 @@ namespace CityFlow {
 
         int finishedVehicleCnt = 0;
         double cumulativeTravelTime = 0;
+
+        std::string nowRoadnetLogFile;
+        std::string nowReplayLogFile;
 
     private:
         void vehicleControl(Vehicle &vehicle, std::vector<std::pair<Vehicle *, double>> &buffer);
@@ -127,7 +133,7 @@ namespace CityFlow {
 
         void pushVehicle(Vehicle *const vehicle, bool pushToDrivable = true);
 
-        void setLogFile(const std::string &jsonFile, const std::string &logFile);
+        void setLogFile(const std::string &jsonFile, const std::string &logFile, bool isMove = false);
 
         void initSegments();
 
