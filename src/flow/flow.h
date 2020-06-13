@@ -18,8 +18,8 @@ namespace CityFlow {
         double interval;
         double nowTime = 0;
         double currentTime = 0;
-        int startTime = 0;
-        int endTime = -1;
+        double startTime = 0;
+        double endTime = -1;
         int cnt = 0;
         Engine *engine;
         std::string id;
@@ -27,7 +27,7 @@ namespace CityFlow {
 
     public:
         Flow(const VehicleInfo &vehicleTemplate, double timeInterval,
-            Engine *engine, int startTime, int endTime, const std::string &id) 
+            Engine *engine, double startTime, double endTime, const std::string &id) 
             : vehicleTemplate(vehicleTemplate), interval(timeInterval),
               startTime(startTime), endTime(endTime), engine(engine), id(id) {
             assert(timeInterval >= 1 || (startTime == endTime));

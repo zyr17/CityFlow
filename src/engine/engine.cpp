@@ -140,8 +140,8 @@ namespace CityFlow {
                 vehicleInfo.maxSpeed = getJsonMember<double>("maxSpeed", vehicle);
                 vehicleInfo.headwayTime = getJsonMember<double>("headwayTime", vehicle);
                 vehicleInfo.route = route;
-                int startTime = getJsonMember<int>("startTime", flow, 0);
-                int endTime = getJsonMember<int>("endTime", flow, -1);
+                double startTime = getJsonMember<double>("startTime", flow, 0);
+                double endTime = getJsonMember<double>("endTime", flow, -1);
                 Flow newFlow(vehicleInfo, getJsonMember<double>("interval", flow), this, startTime, endTime,
                              "flow_" + std::to_string(i));
                 flows.push_back(newFlow);
