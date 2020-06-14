@@ -802,6 +802,10 @@ namespace CityFlow {
     }
     
     void Engine::setLogFile(const std::string &jsonFile, const std::string &logFile, bool isMove) {
+        if (!saveReplayInConfig) {
+            std::cerr << "saveReplay is not set to true in config file!" << std::endl;
+            return;
+        }
         if (!writeJsonToFile(jsonFile, jsonRoot)) {
             std::cerr << "write roadnet log file error" << std::endl;
         }
@@ -809,6 +813,7 @@ namespace CityFlow {
         logOut.open(logFile);
         if (isMove) {
             FILE* f = fopen(nowReplayLogFile.c_str(), "r");
+            assert(f);
             char c;
             while ((c = getc(f)) != EOF) logOut.put(c);
             fclose(f);
