@@ -31,6 +31,8 @@ namespace CityFlow {
             : vehicleTemplate(vehicleTemplate), interval(timeInterval),
               startTime(startTime), endTime(endTime), engine(engine), id(id) {
             assert(timeInterval > 0);
+            if (startTime + interval / 2 > endTime) // avoid skip caused by precision error
+                endTime = startTime + interval / 2;
             nowTime = interval;
         }
 
