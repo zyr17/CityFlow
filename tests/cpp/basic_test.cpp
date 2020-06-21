@@ -303,6 +303,43 @@ namespace InvalidLaneLaneChangeTest {
         SUCCEED();
     }
 
+    TEST(InvalidLaneLaneChange, Record) {
+        std::map<std::string, std::string> checkmap;
+        Archive snapshot;
+        size_t totalStep = 1000;
+        Engine engine(configFilePos("example"), threads);
+        int assertTimes = 0;
+        for (int i = 0; i < totalStep; i++) {
+            engine.reset();
+            if (i) {
+                engine.load(snapshot);
+                for (auto cars : engine.getVehicles()) {
+                    auto car = engine.vehicleMap[cars];
+                    if (car->getFollower()) {
+                        assert(checkmap.find(car->getId()) != checkmap.end());
+                        assertTimes++;
+                        assert(checkmap[car->getId()] == car->getFollower()->getId());
+                        assertTimes++;
+                    }
+                    if (checkmap.find(car->getId()) != checkmap.end()) {
+                        assert(checkmap[car->getId()] == car->getFollower()->getId());
+                        assertTimes++;
+                    }
+                }
+            }
+            engine.nextStep();
+            snapshot = engine.snapshot();
+            checkmap.clear();
+            for (auto cars : engine.getVehicles()) {
+                auto car = engine.vehicleMap[cars];
+                if (car->getFollower())
+                    checkmap[car->getId()] = car->getFollower()->getId();
+            }
+        }
+        std::cout << "assert times: " << assertTimes << std::endl;
+        SUCCEED();
+    }
+
 }
 
 namespace DirectionChangeLanesTest {
