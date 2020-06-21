@@ -136,6 +136,7 @@ namespace CityFlow {
             vehicle->laneChangeInfo.partner = getNewPointer(newPool, vehicle->laneChangeInfo.partner);
             vehicle->controllerInfo.leader  = getNewPointer(newPool, vehicle->controllerInfo.leader);
             vehicle->controllerInfo.blocker = getNewPointer(newPool, vehicle->controllerInfo.blocker);
+            vehicle->controllerInfo.follower = getNewPointer(newPool, vehicle->controllerInfo.follower);
 
             std::shared_ptr<LaneChange> laneChange = vehicle->laneChange;
             laneChange->targetLeader = getNewPointer(newPool, laneChange->targetLeader);
@@ -218,6 +219,7 @@ namespace CityFlow {
 
         addObjectAsMember(vehicleValue, "leader", vehicle.controllerInfo.leader, allocator);
         addObjectAsMember(vehicleValue, "blocker", vehicle.controllerInfo.blocker, allocator);
+        addObjectAsMember(vehicleValue, "follower", vehicle.controllerInfo.follower, allocator);
 
         vehicleValue.AddMember("end", vehicle.controllerInfo.end, allocator);
         vehicleValue.AddMember("running", vehicle.controllerInfo.running, allocator);
@@ -440,6 +442,10 @@ namespace CityFlow {
             const char *blockerId = getJsonMember<const char *>("blocker", vehicleValue, nullptr);
             if (blockerId) {
                 vehicle->controllerInfo.blocker = vehicleDict[blockerId];
+            }
+            const char *followerId = getJsonMember<const char *>("follower", vehicleValue, nullptr);
+            if (followerId) {
+                vehicle->controllerInfo.follower = vehicleDict[followerId];
             }
             const char *partnerId = getJsonMember<const char *>("partner", vehicleValue, nullptr);
             if (partnerId) {
