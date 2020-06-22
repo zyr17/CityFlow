@@ -266,7 +266,7 @@ namespace InvalidLaneLaneChangeTest {
         pushVehicle(engine, roads, speed, 999999999, 0, 0);
     }
 
-    TEST(InvalidLaneLaneChange, Basic) {
+    TEST(InvalidLaneLaneChangeTest, Basic) {
         size_t totalStep = 1000;
         Engine engine(configFilePos("example"), threads);
         int assertTimes = 0;
@@ -277,7 +277,7 @@ namespace InvalidLaneLaneChangeTest {
         SUCCEED();
     }
 
-    TEST(InvalidLaneLaneChange, FixedSpeed) {
+    TEST(InvalidLaneLaneChangeTest, FixedSpeed) {
         size_t totalStep = 10000;
         Engine engine(configFilePos("oneroad"), threads);
         int assertTimes = 0;
@@ -290,7 +290,7 @@ namespace InvalidLaneLaneChangeTest {
         SUCCEED();
     }
     
-    TEST(InvalidLaneLaneChange, RandomStart) {
+    TEST(InvalidLaneLaneChangeTest, RandomStart) {
         GTestInjectSwitch.Router_getFirstDrivable_random = true;
         size_t totalStep = 1000;
         Engine engine(configFilePos("example"), threads);
@@ -303,7 +303,7 @@ namespace InvalidLaneLaneChangeTest {
         SUCCEED();
     }
 
-    TEST(InvalidLaneLaneChange, Record) {
+    TEST(InvalidLaneLaneChangeTest, Record) {
         std::map<std::string, std::string> checkmap;
         Archive snapshot;
         size_t totalStep = 1000;
@@ -365,6 +365,49 @@ namespace DirectionChangeLanesTest {
                         assertTimes++;
                     }
                 }
+        }
+        std::cout << "assert times: " << assertTimes << std::endl;
+        SUCCEED();
+    }
+
+    TEST(DirectionChangeLanesTest, Record) {
+        Archive snapshot;
+        std::map<std::string, RoadLinkType> typecheck;
+        size_t totalStep = 1000;
+        Engine engine(configFilePos("directionchange"), threads);
+        int assertTimes = 0;
+        for (int i = 0; i < totalStep; i++) {
+            engine.reset();
+            if (i) {
+                engine.reset();
+                for (auto l : engine.roadnet.getDirectionChangeLanes()) {
+                    auto nowtype = l.second->getActivatedDirection();
+                    for (auto ll : l.second->getLaneLinks()) {
+                        assert((nowtype == ll->getRoadLinkType()) == ll->isActivated());
+                        assertTimes++;
+                    }
+                }
+                engine.load(snapshot);
+                for (auto l : engine.roadnet.getDirectionChangeLanes()) {
+                    auto nowtype = l.second->getActivatedDirection();
+                    for (auto ll : l.second->getLaneLinks()) {
+                        assert((nowtype == ll->getRoadLinkType()) == ll->isActivated());
+                        assertTimes++;
+                    }
+                    assert(typecheck.find(l.second->getId()) != typecheck.end());
+                    assertTimes++;
+                    assert(l.second->getActivatedDirection() == typecheck[l.second->getId()]);
+                    assertTimes++;
+                }
+            }
+            engine.nextStep();
+            if (i % 100 == 0)
+                engine.setLaneDirection("road_0_1_0_2", i % 200 == 0 ? "go_straight" : "turn_left");
+            snapshot = engine.snapshot();
+            typecheck.clear();
+            for (auto l : engine.roadnet.getDirectionChangeLanes()) {
+                typecheck[l.second->getId()] = l.second->getActivatedDirection();
+            }
         }
         std::cout << "assert times: " << assertTimes << std::endl;
         SUCCEED();
