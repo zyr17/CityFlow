@@ -33,6 +33,7 @@ namespace CityFlow {
             std::list<Lane::HistoryRecord> history;
             int    historyVehicleNum = 0;
             double historyAverageSpeed = 0;
+            RoadLinkType activatedDirection = RoadLinkType::go_straight;
         };
 
         VehiclePool vehiclePool;

@@ -52,6 +52,7 @@ namespace CityFlow {
             drivableArchive.history = lane->history;
             drivableArchive.historyVehicleNum = lane->historyVehicleNum;
             drivableArchive.historyAverageSpeed = lane->historyAverageSpeed;
+            drivableArchive.activatedDirection = lane->activatedDirection;
         }
 
     }
@@ -104,6 +105,8 @@ namespace CityFlow {
                 lane->history = archive.history;
                 lane->historyVehicleNum = archive.historyVehicleNum;
                 lane->historyAverageSpeed = archive.historyAverageSpeed;
+                if (lane->directionChange)
+                    lane->setActivatedDirection(archive.activatedDirection);
             }
         }
         for (auto &flow : engine.flows) {
@@ -127,6 +130,7 @@ namespace CityFlow {
         for (const auto &veh : src) {
             const Vehicle *oldVehicle = veh.second.first;
             Vehicle *newVehicle = new Vehicle(*oldVehicle);
+            newVehicle->controllerInfo.router.planned = oldVehicle->controllerInfo.router.planned;
             newPool.emplace(oldVehicle->getPriority(), std::make_pair(newVehicle, veh.second.second));
         }
 
@@ -197,7 +201,7 @@ namespace CityFlow {
         vehicleValue.AddMember("headwayTime", vehicle.vehicleInfo.headwayTime, allocator);
         vehicleValue.AddMember("yieldDistance", vehicle.vehicleInfo.yieldDistance, allocator);
         vehicleValue.AddMember("turnSpeed", vehicle.vehicleInfo.turnSpeed, allocator);
-
+        
 
         // save route
         rapidjson::Value routeValue(rapidjson::kArrayType);
@@ -223,6 +227,12 @@ namespace CityFlow {
 
         vehicleValue.AddMember("end", vehicle.controllerInfo.end, allocator);
         vehicleValue.AddMember("running", vehicle.controllerInfo.running, allocator);
+
+        auto planned = vehicle.controllerInfo.router.planned;
+        rapidjson::Value plannedArray(rapidjson::kArrayType);
+        for (auto p : planned)
+            plannedArray.PushBack(rapidjson::Value(p->getId(), allocator), allocator);
+        vehicleValue.AddMember("planned", plannedArray, allocator);
 
         // save lane change info
         vehicleValue.AddMember("partnerType", vehicle.laneChangeInfo.partnerType, allocator);
@@ -291,6 +301,7 @@ namespace CityFlow {
                 drivableValue.AddMember("history", historyValue, allocator);
                 drivableValue.AddMember("historyVehicleNum", drivableArchive.historyVehicleNum, allocator);
                 drivableValue.AddMember("historyAverageSpeed", drivableArchive.historyAverageSpeed, allocator);
+                drivableValue.AddMember("activatedDirection", drivableArchive.activatedDirection, allocator);
             }
 
             drivablesValue.AddMember(
@@ -402,6 +413,12 @@ namespace CityFlow {
             controllerInfo.enterLaneLinkTime = getJsonMember<int>("enterLaneLinkTime", vehicleValue);
             controllerInfo.end = getJsonMember<bool>("end", vehicleValue);
             controllerInfo.running = getJsonMember<bool>("running", vehicleValue);
+
+            // update router.planned
+            auto planned = vehicle->controllerInfo.router.planned;
+            planned.clear();
+            for (const auto &i : vehicleValue["planned"].GetArray())
+                planned.push_back(engine.roadnet.drivableMap[i.GetString()]);
 
             auto &laneChangeInfo = vehicle->laneChangeInfo;
             laneChangeInfo.partnerType = getJsonMember<int>("partnerType", vehicleValue);
@@ -522,6 +539,7 @@ namespace CityFlow {
                 }
                 drivableArchive.historyAverageSpeed = getJsonMember<double>("historyAverageSpeed", drivableValue);
                 drivableArchive.historyVehicleNum = getJsonMember<int>("historyVehicleNum", drivableValue);
+                drivableArchive.activatedDirection = RoadLinkType(getJsonMember<int>("activatedDirection", drivableValue));
             }
         }
 
