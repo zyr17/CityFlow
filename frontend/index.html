@@ -8,7 +8,7 @@
     <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.5.0/css/all.css" integrity="sha384-B4dIYHKNBt8Bc12p+WXckhzcICo0wtJAoU8YZTY5qE0Id1GSseTk6S+L3BlXeVIU" crossorigin="anonymous">
     <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="spinner.css">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/pixi.js/4.8.2/pixi.min.js"></script>
+    <script src="https://cdn.bootcdn.net/ajax/libs/pixi.js/4.8.2/pixi.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/pixi-viewport@4.2.3/dist/viewport.min.js"></script>
     <link rel="stylesheet" href="http://cdn.jsdelivr.net/chartist.js/latest/chartist.min.css">
     <script src="http://cdn.jsdelivr.net/chartist.js/latest/chartist.min.js"></script>
@@ -89,12 +89,16 @@
                     </tr>
                     </tbody>
                 </table>
-                <div class="row no-gutters">
+                <div class="row no-gutters" style="background-image: linear-gradient(#FFF0, #FFFF, #FFF0);">
                     <div class="col-1 text-center">
                         <span class="fas fa-minus" id="slow-btn" style="cursor: pointer"></span>
                     </div>
-                    <div class="col-10">
-                        <input type="range" class="custom-range" id="replay-control">
+                    <div class="col-10" style="position: relative;">
+                        <div style="position: absolute; width: 100%; height: 100%; background-image: linear-gradient(#f8f9faff, #f8f9fa00, #f8f9faff);"></div>
+                        <div style="position: absolute; width: 100%; height: 100%; background-image: linear-gradient(to right, #f8f9faff 0%, #f8f9fa00 10%, #f8f9fa00 90%, #f8f9faff 100%);"></div>
+                        <div style="position: absolute; height: 100%; width: 100%;"><input type="range" class="custom-range" id="replay-control"></div>
+                        
+                        <div id="colordiv" style="width: 100%; height: 100%;"></div>
                     </div>
                     <div class="col-1 text-center">
                         <span class="fas fa-plus" id="fast-btn" style="cursor: pointer"></span>
@@ -105,6 +109,17 @@
                         <button class="btn btn-outline-secondary w-100" id="pause">Pause</button>
                     </div>
                 </div>
+
+                <div class="" style="padding-bottom: 20px;">
+                    <div class="input-group">
+                        <input id="setstepinput" type="text" class="form-control">
+                        <span class="input-group-btn">
+                            <button id="setstepbtn" class="btn btn-outline-secondary" type="button">
+                                Set Step
+                            </button>
+                        </span>
+                    </div><!-- /input-group -->
+                </div><!-- /.col-lg-6 -->
 
             </div>
 

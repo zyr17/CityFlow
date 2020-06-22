@@ -75,7 +75,7 @@ function setAngle(sprite, anglestr, pointX, pointY, height = null) {
 var controls = new function () {
     this.replaySpeedMax = 1;
     this.replaySpeedMin = 0.01;
-    this.replaySpeed = 0.5;
+    this.replaySpeed = 1;
     this.paused = false;
 };
 
@@ -107,6 +107,7 @@ var keyDown = new Set();
 var turnSignalTextures = [];
 
 let pauseButton = document.getElementById("pause");
+let setstepButton = document.getElementById("setstepbtn");
 let nodeCanvas = document.getElementById("simulator-canvas");
 let replayControlDom = document.getElementById("replay-control");
 let replaySpeedDom = document.getElementById("replay-speed");
@@ -257,22 +258,42 @@ ChartFileDom.addEventListener("change",
 document.getElementById("start-btn").addEventListener("click", start);
 
 document.getElementById("slow-btn").addEventListener("click", function() {
-    updateReplaySpeed(controls.replaySpeed - 0.1);
+    updateReplaySpeed(replayControlDom.value / 100 - 0.1);
 })
 
 document.getElementById("fast-btn").addEventListener("click", function() {
-    updateReplaySpeed(controls.replaySpeed + 0.1);
+    updateReplaySpeed(replayControlDom.value / 100 + 0.1);
 })
 
-function updateReplaySpeed(speed){
-    speed = Math.min(speed, 1);
-    speed = Math.max(speed, 0);
+let ruler = [[0, -1, '#000'], [0.15, 0, '#000'], [0.4, 0.25, '#00F'], [0.75, 1, '#0C0'], [0.95, 10, '#F00'], [1, 100, '#F00']];
+
+function setBackgroundRuler(){
+    let bkstr = 'linear-gradient(to right';
+    for (let i = 0; i < ruler.length; i ++ )
+        bkstr += ', ' + ruler[i][2] + ' ' + ruler[i][0] * 100 + '%';
+    bkstr += ')';
+    console.log(bkstr);
+    document.getElementById('colordiv').style.backgroundImage = bkstr;
+    console.log(document.getElementById('colordiv'));
+}
+
+setBackgroundRuler();
+
+function updateReplaySpeed(scale){
+    scale = Math.min(scale, ruler[ruler.length - 1][0]);
+    scale = Math.max(scale, ruler[0][0]);
+    let speed = 1;
+    for (let i = 0; ; i ++ )
+        if (ruler[i][0] <= scale && ruler[i + 1][0] >= scale){
+            speed = ruler[i][1] + (ruler[i + 1][1] - ruler[i][1]) * ((scale - ruler[i][0]) / (ruler[i + 1][0] - ruler[i][0]));
+            break;
+        }
     controls.replaySpeed = speed;
-    replayControlDom.value = speed * 100;
+    replayControlDom.value = scale * 100;
     replaySpeedDom.innerHTML = speed.toFixed(2);
 }
 
-updateReplaySpeed(0.5);
+updateReplaySpeed(0.75);
 
 replayControlDom.addEventListener('change', function(e){
     updateReplaySpeed(replayControlDom.value / 100);
@@ -306,6 +327,17 @@ nodeCanvas.addEventListener('dblclick', function(e){
 pauseButton.addEventListener('click', function(e){
     controls.paused = !controls.paused;
 });
+
+setstepButton.addEventListener('click', function(e){
+    try{ 
+        let number = parseInt(document.getElementById("setstepinput").value);
+        if (number >= 0 && number < totalStep){
+            cnt = number;
+            if (controls.paused) drawStep(cnt);
+        }
+    } catch {}
+});
+
 
 function initCanvas() {
     app = new Application({
@@ -686,12 +718,18 @@ function run(delta) {
             ready = false;
         }
         if (!controls.paused) {
+            cnt += controls.replaySpeed;
+            if (totalStep == 0) cnt = 0;
+            for (; cnt >= totalStep; cnt -= totalStep);
+            for (; cnt < 0; cnt += totalStep);
+            /*
             frameElapsed += 1;
             if (frameElapsed >= 1 / controls.replaySpeed ** 2) {
                 cnt += 1;
                 frameElapsed = 0;
                 if (cnt == totalStep) cnt = 0;
             }
+            */
         }
     }
 }
@@ -718,7 +756,8 @@ function stringHash(str) {
     return hash;
 }
 
-function drawStep(step) {
+function drawStep(stepFloat) {
+    step = parseInt(stepFloat);
     if (showChart && (step > chart.ptr || step == 0)) {
         if (step == 0) {
             chart.clear();
@@ -786,7 +825,7 @@ function drawStep(step) {
     }
     nodeCarNum.innerText = carLogs.length-1;
     nodeTotalStep.innerText = totalStep;
-    nodeCurrentStep.innerText = cnt+1;
+    nodeCurrentStep.innerText = parseInt(cnt+1);
     nodeProgressPercentage.innerText = (cnt / totalStep * 100).toFixed(2) + "%";
     if (statsFile != "") {
         if (withRange) nodeRange.value = stats[step][1];
