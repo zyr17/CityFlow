@@ -679,8 +679,9 @@ FOUND:;
     }
 
     void RoadNet::reset() {
-        for (auto &road : roads) road.reset();
+        // must reset LaneLink before Lane
         for (auto &intersection : intersections) intersection.reset();
+        for (auto &road : roads) road.reset();
     }
 
     void Road::reset() {
@@ -830,11 +831,19 @@ FOUND:;
 
     void LaneLink::reset() {
         vehicles.clear();
+        activated = true;
     }
 
     void Lane::reset() {
         waitingBuffer.clear();
         vehicles.clear();
+        if (directionChange) {
+            for (auto ll : laneLinks)
+                ll->setActivate(false);
+            assert(laneLinks.size());
+            if (laneLinks.size())
+                setActivatedDirection(laneLinks[0]->getRoadLinkType());
+        }
     }
 
     std::vector<Vehicle *> Lane::getVehiclesBeforeDistance(double dis, size_t segmentIndex, double deltaDis) {

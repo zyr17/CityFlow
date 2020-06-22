@@ -505,6 +505,7 @@ namespace CityFlow {
 
 
     class RoadNet {
+        friend Archive;
     private:
         std::vector<Road> roads;
         std::vector<Intersection> intersections;
