@@ -414,6 +414,8 @@ namespace CityFlow {
 
         void setActivatedDirection(RoadLinkType direction);
 
+        std::vector<RoadLinkType> getAvailableDirections();
+
     };
 
     class RoadLink {
