@@ -938,6 +938,22 @@ namespace CityFlow {
         }
     }
 
+    std::map<std::string, std::vector<std::string>> Engine::getDirectionChangeLanes() {
+        std::map<std::string, std::vector<std::string>> res;
+        auto& lanes = roadnet.getDirectionChangeLanes();
+        for (auto& lane : lanes) {
+            std::vector<std::string>& v = res[lane.first];
+            v.push_back(lane.second->getBelongRoad()->getId());
+            v.push_back(lane.second->getEndIntersection()->getId());
+            for (auto d : lane.second->getAvailableDirections()) {
+                if (d == RoadLinkType::go_straight) v.push_back("go_straight");
+                else if (d == RoadLinkType::turn_left) v.push_back("turn_left");
+                else if (d == RoadLinkType::turn_right) v.push_back("turn_right");
+            }
+        }
+        return res;
+    }
+
 }
 
 void Utils::removeFile(std::string filename) {

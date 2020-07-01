@@ -1002,5 +1002,13 @@ FOUND:;
             lanelink->setActivate(true);
     }
 
+    std::vector<RoadLinkType> Lane::getAvailableDirections() {
+        std::vector<RoadLinkType> res;
+        for (int i = 0; i < sizeof(differentDirectionLaneLinks) / sizeof(differentDirectionLaneLinks[0]); i++)
+            if (differentDirectionLaneLinks[i].size())
+                res.push_back(RoadLinkType(i));
+        return res;
+    }
+
 }
 
