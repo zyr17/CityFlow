@@ -347,6 +347,20 @@ namespace DirectionChangeLanesTest {
         size_t totalStep = 10000;
         int assertTimes = 0;
         Engine engine(configFilePos("directionchange"), threads);
+        auto changemap = engine.getDirectionChangeLanes();
+        assert(changemap.size() == 1);
+        assertTimes++;
+        std::string lanename = "road_0_1_0_2";
+        assert(changemap.find(lanename) != changemap.end());
+        assertTimes++;
+        auto changelane = changemap[lanename];
+        assert(changelane[0] == lanename.substr(0, lanename.size() - 2));
+        assertTimes++;
+        for (int i = 2; i < changelane.size(); i++) {
+            auto s = changelane[i];
+            assert(s == "go_straight" || s == "turn_left" || s == "turn_right");
+            assertTimes++;
+        }
         for (size_t i = 0; i < totalStep; i++) {
             if (i % 1000 == 0)
                 engine.setLaneDirection("road_0_1_0_2", i % 2000 ? "go_straight" : "turn_left");
