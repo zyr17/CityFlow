@@ -503,7 +503,7 @@ namespace CityFlow {
 
 
     class RoadNet {
-        friend Archive;
+        friend class Archive;
     private:
         std::vector<Road> roads;
         std::vector<Intersection> intersections;

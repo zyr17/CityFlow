@@ -13,7 +13,7 @@ namespace CityFlow {
     class Vehicle;
 
     class Router {
-    friend Archive;
+    friend class Archive;
     private:
         
         Vehicle* vehicle = nullptr;
