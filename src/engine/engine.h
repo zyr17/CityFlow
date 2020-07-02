@@ -178,6 +178,8 @@ namespace CityFlow {
 
         std::map<std::string, std::vector<std::string>> getDirectionChangeLanes();
 
+        std::string getDirectionChangeLaneDirection(std::string& lane);
+
         // archive
         void load(const Archive &archive) { archive.resume(*this); }
         Archive snapshot() { return Archive(*this); }
