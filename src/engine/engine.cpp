@@ -549,7 +549,7 @@ namespace CityFlow {
                     continue;
                 }
 
-                bool can_go = true;
+                bool can_go = lane.getActivatedDirection() != RoadLinkType::deactivate;
                 for (LaneLink *laneLink : lane.getLaneLinks()) {
                     if (laneLink->getRoadLinkType() == lane.getActivatedDirection() && !laneLink->isAvailable()) {
                         can_go = false;
@@ -576,6 +576,9 @@ namespace CityFlow {
                     break;
                 case RoadLinkType::turn_right:
                     result.append(" right");
+                    break;
+                case RoadLinkType::deactivate:
+                    result.append(" deactivate");
                     break;
                 }
             }
@@ -907,6 +910,7 @@ namespace CityFlow {
             if (direction == "go_straight") rl = RoadLinkType::go_straight;
             else if (direction == "turn_left") rl = RoadLinkType::turn_left;
             else if (direction == "turn_right") rl = RoadLinkType::turn_right;
+            else if (direction == "deactivate") rl = RoadLinkType::deactivate;
             else throw std::runtime_error("Direction '" + direction + "' not valid, must be go_straight, turn_left or turn_right");
             lanes.find(lane)->second->setActivatedDirection(rl);
         }

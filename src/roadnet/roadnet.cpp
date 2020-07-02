@@ -994,7 +994,7 @@ FOUND:;
     }
 
     void Lane::setActivatedDirection(RoadLinkType direction) {
-        assert(differentDirectionLaneLinks[direction].size());
+        assert(direction == RoadLinkType::deactivate || differentDirectionLaneLinks[direction].size());
         for (auto &lanelink : differentDirectionLaneLinks[activatedDirection])
             lanelink->setActivate(false);
         activatedDirection = direction;

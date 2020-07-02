@@ -289,7 +289,7 @@ namespace CityFlow {
     };
 
     enum RoadLinkType {
-        go_straight = 3, turn_left = 2, turn_right = 1
+        go_straight = 3, turn_left = 2, turn_right = 1, deactivate = 0
     };
 
     class Lane : public Drivable {
