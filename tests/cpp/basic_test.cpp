@@ -362,8 +362,15 @@ namespace DirectionChangeLanesTest {
             assertTimes++;
         }
         for (size_t i = 0; i < totalStep; i++) {
-            if (i % 1000 == 0)
-                engine.setLaneDirection("road_0_1_0_2", i % 3000 ? i % 3000 == 1000 ? "go_straight" : "turn_left" : "deactivate");
+            auto r = engine.getDirectionChangeLanes().begin()->first;
+            if (i % 1000 == 0) {
+                std::cout << r << ' ' << engine.getDirectionChangeLaneDirection(r) << "|";
+                auto direction = i % 3000 ? i % 3000 == 1000 ? "go_straight" : "turn_left" : "deactivate";
+                engine.setLaneDirection(r, direction);
+                std::cout << direction << ' ' << engine.getDirectionChangeLaneDirection(r) << "\n";
+                assert(direction == engine.getDirectionChangeLaneDirection(r));
+                assertTimes++;
+            }
             engine.nextStep();
             for (auto lane : engine.roadnet.getLanes())
                 if (lane->isDirectionChangeLane()) {
