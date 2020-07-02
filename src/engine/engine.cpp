@@ -958,6 +958,22 @@ namespace CityFlow {
         return res;
     }
 
+    std::string Engine::getDirectionChangeLaneDirection(std::string& lane) {
+        auto& lanes = roadnet.getDirectionChangeLanes();
+        auto iter = lanes.find(lane);
+        if (iter == lanes.end()) {
+            throw std::runtime_error("direction changable lane '" + lane + "' not found");
+            return "";
+        }
+        auto type = iter->second->getActivatedDirection();
+        std::string result = type == RoadLinkType::deactivate ? "deactivate" :
+            type == RoadLinkType::go_straight ? "go_straight" :
+            type == RoadLinkType::turn_left ? "turn_left" :
+            type == RoadLinkType::turn_right ? "turn_right" : "";
+        assert(result != "");
+        return result;
+    }
+
 }
 
 void Utils::removeFile(std::string filename) {
