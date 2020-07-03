@@ -665,6 +665,25 @@ namespace CityFlow {
         return ret;
     }
 
+    std::vector<int> Engine::getRoadLinkVehicleCount(const std::string& intersectionId, int roadLinkIdx) const {
+        std::vector<int> ret;
+        ret.resize(4);
+        auto &roadlink = roadnet.getIntersectionById(intersectionId)->getRoadLinks()[roadLinkIdx];
+        std::set<Lane*> start, end;
+        for (auto& lanelink : roadlink.getLaneLinks()) {
+            if (!lanelink.isActivated()) continue;
+            start.insert(lanelink.getStartLane());
+            end.insert(lanelink.getEndLane());
+        }
+        ret[1] = start.size();
+        ret[3] = end.size();
+        for (auto& i : start)
+            ret[0] += i->getVehicleCount();
+        for (auto& i : end)
+            ret[2] += i->getVehicleCount();
+        return ret;
+    }
+
     std::map<std::string, int> Engine::getLaneVehicleCount() const {
         std::map<std::string, int> ret;
         for (const Lane *lane : roadnet.getLanes()) {

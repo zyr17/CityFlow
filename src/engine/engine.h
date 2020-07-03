@@ -146,6 +146,8 @@ namespace CityFlow {
 
         std::vector<std::string> getVehicles(bool includeWaiting = false) const;
 
+        std::vector<int> getRoadLinkVehicleCount(const std::string& intersectionId, int roadLinkIdx) const;
+
         std::map<std::string, int> getLaneVehicleCount() const;
 
         std::map<std::string, int> getLaneWaitingVehicleCount() const;
