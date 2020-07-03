@@ -365,10 +365,14 @@ namespace DirectionChangeLanesTest {
             auto r = engine.getDirectionChangeLanes().begin()->first;
             if (i % 1000 == 0) {
                 std::cout << r << ' ' << engine.getDirectionChangeLaneDirection(r) << "|";
-                auto direction = i % 3000 ? i % 3000 == 1000 ? "go_straight" : "turn_left" : "deactivate";
+                std::string direction = i % 3000 ? i % 3000 == 1000 ? "go_straight" : "turn_left" : "deactivate";
                 engine.setLaneDirection(r, direction);
                 std::cout << direction << ' ' << engine.getDirectionChangeLaneDirection(r) << "\n";
                 assert(direction == engine.getDirectionChangeLaneDirection(r));
+                assertTimes++;
+                auto res = engine.getRoadLinkVehicleCount("intersection_1_1", 0);
+                printf("%6d%6d%6d%6d\n", res[0], res[1], res[2], res[3]);
+                assert(res[1] == 2 + (direction == "go_straight"));
                 assertTimes++;
             }
             engine.nextStep();
