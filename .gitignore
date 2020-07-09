@@ -16,3 +16,4 @@ bin/
 *replay.txt
 *replay_roadnet.json
 .nvimlog
+.*.swp

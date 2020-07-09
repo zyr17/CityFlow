@@ -80,7 +80,8 @@ namespace CityFlow {
         void threadController(std::set<Vehicle *> &vehicles, 
                               std::vector<Road *> &roads,
                               std::vector<Intersection *> &intersections,
-                              std::vector<Drivable *> &drivables);
+                              std::vector<Drivable *> &drivables,
+                              int index);
 
         void threadPlanRoute(const std::vector<Road *> &roads);
 
@@ -117,7 +118,7 @@ namespace CityFlow {
     public:
         std::mt19937 rnd;
 
-        Engine(const std::string &configFile, int threadNum);
+        Engine(const std::string &configFile, int threadNum, const std::string &logfile = "", const std::string &loglevel = "ALL");
 
         double getInterval() const { return interval; }
 

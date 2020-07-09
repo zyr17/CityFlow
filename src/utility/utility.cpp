@@ -7,6 +7,12 @@
 #include "rapidjson/document.h"
 #include "rapidjson/error/en.h"
 
+std::string itoa(int k) {
+    char buffer[30];
+    sprintf(buffer, "%d", k);
+    return buffer;
+}
+
 namespace CityFlow {
 
     Point operator*(const Point &A, double k) {

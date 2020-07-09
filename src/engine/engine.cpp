@@ -4,8 +4,10 @@
 #include <ctime>
 namespace CityFlow {
 
-    Engine::Engine(const std::string &configFile, int threadNum) : threadNum(threadNum), startBarrier(threadNum + 1),
+    Engine::Engine(const std::string &configFile, int threadNum, const std::string &logfile, const std::string &loglevel) : threadNum(threadNum), startBarrier(threadNum + 1),
                                                                    endBarrier(threadNum + 1) {
+        Log.init(logfile, loglevel);
+        LOG("Engine init! config file: " + configFile);
         for (int i = 0; i < threadNum; i++) {
             threadVehiclePool.emplace_back();
             threadRoadPool.emplace_back();
@@ -22,7 +24,7 @@ namespace CityFlow {
                                     std::ref(threadVehiclePool[i]),
                                     std::ref(threadRoadPool[i]),
                                     std::ref(threadIntersectionPool[i]),
-                                    std::ref(threadDrivablePool[i]));
+                                    std::ref(threadDrivablePool[i]), i);
         }
 
     }
@@ -262,20 +264,33 @@ namespace CityFlow {
     void Engine::threadController(std::set<Vehicle *> &vehicles, 
                                   std::vector<Road *> &roads,
                                   std::vector<Intersection *> &intersections,
-                                  std::vector<Drivable *> &drivables) {
+                                  std::vector<Drivable *> &drivables,
+                                  int index) {
+        std::string header = "THREAD " + itoa(index) + " ";
+        LOG2(header + " started!", "ALL");
         while (!finished) {
+            LOG2(header + "threadPlanRoute", "ALL");
             threadPlanRoute(roads);
             if (laneChange) {
+                LOG2(header + "threadInitSegments", "ALL");
                 threadInitSegments(roads);
+                LOG2(header + "threadPlanLaneChange", "ALL");
                 threadPlanLaneChange(vehicles);
+                LOG2(header + "threadUpdateLeaderAndGap", "ALL");
                 threadUpdateLeaderAndGap(drivables);
             }
+            LOG2(header + "threadNotifyCross", "ALL");
             threadNotifyCross(intersections);
+            LOG2(header + "threadGetAction", "ALL");
             threadGetAction(vehicles);
+            LOG2(header + "threadUpdateLocation", "ALL");
             threadUpdateLocation(drivables);
+            LOG2(header + "threadUpdateAction", "ALL");
             threadUpdateAction(vehicles);
+            LOG2(header + "threadUpdateLeaderAndGap", "ALL");
             threadUpdateLeaderAndGap(drivables);
         }
+        LOG2(header + "exit", "ALL");
     }
 
     void Engine::threadPlanRoute(const std::vector<Road *> &roads) {
@@ -423,7 +438,12 @@ namespace CityFlow {
 
     void Engine::threadUpdateAction(std::set<Vehicle *> &vehicles) {
         startBarrier.wait();
-        for (auto vehicle: vehicles)
+        std::string id = itoa(vehicles.size());
+        int count = 0;
+        LOG2("thread updateActionStart" + itoa(vehicles.size()),"ALL");
+        for (auto vehicle: vehicles){
+            count ++ ;
+            //LOG2("thread " + id + itoa(count), "ALL");
             if (vehicle->isRunning()) {
                 if (vehicleRemoveBuffer.count(vehicle->getBufferBlocker())){
                     vehicle->setBlocker(nullptr);
@@ -432,6 +452,8 @@ namespace CityFlow {
                 vehicle->update();
                 vehicle->clearSignal();
             }
+        }
+        LOG2("thread updateActionBeforeEnd" + itoa(vehicles.size()),"ALL");
         endBarrier.wait();
     }
 
@@ -505,7 +527,9 @@ namespace CityFlow {
 
     void Engine::updateAction() {
         startBarrier.wait();
+        LOG2("MAIN   updateActionStart","ALL");
         endBarrier.wait();
+        LOG2("MAIN   updateActionEnd","ALL");
         vehicleRemoveBuffer.clear();
     }
 
@@ -598,20 +622,31 @@ namespace CityFlow {
     }
 
     void Engine::nextStep() {
+        LOG2("MAIN   nextStep", "ALL");
         for (auto &flow : flows)
             flow.nextStep(interval);
+        LOG2("MAIN   planRoute", "ALL");
         planRoute();
+        LOG2("MAIN   handleWaiting", "ALL");
         handleWaiting();
         if (laneChange) {
+            LOG2("MAIN   initSegments", "ALL");
             initSegments();
+            LOG2("MAIN   planLaneChange", "ALL");
             planLaneChange();
+            LOG2("MAIN   updateLeaderAndGap", "ALL");
             updateLeaderAndGap();
         }
+        LOG2("MAIN   notifyCross", "ALL");
         notifyCross();
 
+        LOG2("MAIN   getAction", "ALL");
         getAction();
+        LOG2("MAIN   updateLocation", "ALL");
         updateLocation();
+        LOG2("MAIN   updateAction", "ALL");
         updateAction();
+        LOG2("MAIN   updateLeaderAndGap", "ALL");
         updateLeaderAndGap();
 
         if (!rlTrafficLight) {
@@ -623,6 +658,8 @@ namespace CityFlow {
         if (saveReplay) {
             updateLog();
         }
+
+        LOG2("MAIN   nextStepOver", "ALL");
 
         step += 1;
     }
@@ -813,14 +850,18 @@ namespace CityFlow {
     }
 
     Engine::~Engine() {
+        LOG("MAIN   destruction");
         logOut.close();
         for (int i = 0; i < (laneChange ? 9 : 6); ++i) {
+            LOG(std::string("") + "MAIN   LOOP" + itoa(i));
             startBarrier.wait();
             if (!i) finished = true;
             endBarrier.wait();
         }
         for (auto &thread : threadPool) thread.join();
+        LOG("MAIN   join over");
         for (auto &vehiclePair : vehiclePool) delete vehiclePair.second.first;
+        LOG("MAIN   destruct vehicle over");
     }
     
     void Engine::setLogFile(const std::string &jsonFile, const std::string &logFile, bool isMove) {

@@ -9,9 +9,11 @@ using namespace py::literals;
 
 PYBIND11_MODULE(cityflow, m) {
     py::class_<CityFlow::Engine>(m, "Engine")
-        .def(py::init<const std::string&, int>(),
+        .def(py::init<const std::string&, int, const std::string&, const std::string&>(),
             "config_file"_a,
-            "thread_num"_a=1
+            "thread_num"_a=1,
+            "log_file"_a="",
+            "log_level"_a="ALL"
         )
         .def("next_step", &CityFlow::Engine::nextStep)
         .def("get_vehicle_count", &CityFlow::Engine::getVehicleCount)

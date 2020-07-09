@@ -5,6 +5,8 @@
 #include "dtoa_milo.h"
 #include "utility/config.h"
 
+std::string itoa(int k);
+
 namespace CityFlow {
 
     constexpr double eps = 1e-8;
