@@ -3,6 +3,8 @@ import json
 import os
 from generate_json_from_grid import gridToRoadnet
 
+# python generate_grid_scenario.py 1 1 --numRightLanes 0 --numStraightLanes 2 --directionChange 1,1,S,110,010 --directionChange 1,1,E,110,110
+
 def parse_args():
     parser = argparse.ArgumentParser()
     parser.add_argument("rowNum", type=int)
@@ -29,6 +31,15 @@ def parse_args():
     parser.add_argument("--tlPlan", action="store_true")
     parser.add_argument("--interval", type=float, default=2.0)
     parser.add_argument("--flowFile", type=str)
+    parser.add_argument("--directionChange", type=str, action='append', default = [], help=
+'''
+can input many times. format: row,col,road,direction,lanes
+row, col: which intersection
+road: NESW, road on which side of intersection
+direction: 3bits, left/straight/right, 1=can change to the direction
+lanes: bits, length=num of lanes, 1=is direction change lane
+example: `1,1,S,110,0110000` means south road of intersection 1,1, can straight or left, lane 1,2.
+''')
     return parser.parse_args()
 
 def generate_route(rowNum, colNum, turn=False):
@@ -97,7 +108,8 @@ if __name__ == '__main__':
         "numStraightLanes": args.numStraightLanes,
         "numRightLanes": args.numRightLanes,
         "laneMaxSpeed": args.laneMaxSpeed,
-        "tlPlan": args.tlPlan
+        "tlPlan": args.tlPlan,
+        "directionChange": args.directionChange
     }
 
     json.dump(gridToRoadnet(**grid), open(os.path.join(args.dir, args.roadnetFile), "w"), indent=2)

@@ -165,9 +165,31 @@ def checkIntersection(interseciontName, isTruelyInside):
     # else:
     #     return None
 
+class dcclass:
+    def __init__(self, s):
+        s = s.split(',')
+        self.x = int(s[0])
+        self.y = int(s[1])
+        self.road = s[2]
+        self.direction = []
+        self.lane = []
+        for i in s[3]:
+            self.direction.append(i == '1')
+        for i in s[4]:
+            self.lane.append(i == '1')
+
 def gridToRoadnet(rowNumber, columnNumber, rowDistances, columnDistances, outRowDistance, outColumnDistance,
                   intersectionWidths, laneWidth=4, laneMaxSpeed=20,
-                  numLeftLanes=1, numStraightLanes=1, numRightLanes=1, tlPlan=False, midPoints=10):
+                  numLeftLanes=1, numStraightLanes=1, numRightLanes=1, tlPlan=False, midPoints=10,
+                  directionChange=[]):
+                
+    directions = {
+        'S': [0, 1],
+        'W': [1, 0],
+        'N': [0, -1],
+        'E': [-1, 0],
+    }
+    dclane = [dcclass(x) for x in directionChange if x != '']
 
     rowNumber += 2
     columnNumber += 2
@@ -175,6 +197,15 @@ def gridToRoadnet(rowNumber, columnNumber, rowDistances, columnDistances, outRow
     intersectionWidths = [[0] * columnNumber] + intersectionWidths + [[0] * columnNumber]
     for i in range(1, rowNumber - 1):
         intersectionWidths[i] = [0] + intersectionWidths[i] + [0]
+
+    def get_nesw(fi, fj, ti, tj):
+        dx = ti - fi
+        dy = tj - fj
+        for res in directions:
+            d = directions[res]
+            if dx == d[0] and dy == d[1]:
+                return res
+        assert 0
 
     def isInside(i, j):
         return i >= 0 and j >= 0 and i < rowNumber and j < columnNumber
@@ -187,18 +218,26 @@ def gridToRoadnet(rowNumber, columnNumber, rowDistances, columnDistances, outRow
 
     def isEdge(i, j):
         return isInside(i, j) and not isTruelyInside(i, j)
+    
+    def isChange(road, index, direction):
+        for l in dclane:
+            if l.x == road['toi'] and l.y == road['toj'] and l.road == road['NESW']:
+                if l.direction[direction] and l.lane[index]:
+                    print(road, index, direction)
+                    return True
+        return False
 
     def shouldDraw(road):
         return isTruelyInside(road["fromi"], road["fromj"]) or isTruelyInside(road["toi"], road["toj"])
 
-    def isLeftLane(index):
-        return 0 <= index < numLeftLanes
+    def isLeftLane(index, road):
+        return 0 <= index < numLeftLanes or isChange(road, index, 0)
 
-    def isStraightLane(index):
-        return numLeftLanes <= index < numLeftLanes + numStraightLanes
+    def isStraightLane(index, road):
+        return numLeftLanes <= index < numLeftLanes + numStraightLanes or isChange(road, index, 1)
 
-    def isRightLane(index):
-        return numLeftLanes + numStraightLanes <= index < numLanes
+    def isRightLane(index, road):
+        return numLeftLanes + numStraightLanes <= index < numLanes or isChange(road, index, 2)
 
     x = [[None for _ in range(columnNumber)] for _ in range(rowNumber)]
     y = [[None for _ in range(columnNumber)] for _ in range(rowNumber)]
@@ -243,6 +282,7 @@ def gridToRoadnet(rowNumber, columnNumber, rowDistances, columnDistances, outRow
                                 "maxSpeed": laneMaxSpeed
                             }
                         ] * numLanes,
+                        'NESW': get_nesw(i, j, ni, nj),
                         "startIntersection": "intersection_%d_%d" % (j, i),
                         "endIntersection": "intersection_%d_%d" % (nj, ni)
                     }
@@ -290,11 +330,11 @@ def gridToRoadnet(rowNumber, columnNumber, rowDistances, columnDistances, outRow
                             "laneLinks": []
                         }
                         for c in range(len(roada["lanes"])):
-                            if roadLink["type"] == "turn_left" and not isLeftLane(c):
+                            if roadLink["type"] == "turn_left" and not isLeftLane(c, roada):
                                 continue
-                            if roadLink["type"] == "go_straight" and not isStraightLane(c):
+                            if roadLink["type"] == "go_straight" and not isStraightLane(c, roada):
                                 continue
-                            if roadLink["type"] == "turn_right" and not isRightLane(c):
+                            if roadLink["type"] == "turn_right" and not isRightLane(c, roada):
                                 continue
                             for d in range(len(roadb["lanes"])):
                                 path = {
@@ -302,12 +342,15 @@ def gridToRoadnet(rowNumber, columnNumber, rowDistances, columnDistances, outRow
                                     "endLaneIndex": d,
                                     "points": findPath(roada, c, roadb, d, width, midPoints)
                                 }
+                                path['points'] = [path['points'][0], path['points'][-1]]
                                 roadLink["laneLinks"].append(path)
                         if roadLink["laneLinks"]:
                             roadLinkIndices.append(len(roadLinks))
                             roadLinks.append(roadLink)
                     except ValueError:
                         pass
+
+            roadLinks.sort(key=lambda x:x['startRoad']+'#'+x['type'])
             
             leftLaneLinks = set(filter(lambda x: roadLinks[x]["type"] == "turn_left", roadLinkIndices))
             rightLaneLinks = set(filter(lambda x: roadLinks[x]["type"] == "turn_right", roadLinkIndices))
@@ -318,7 +361,9 @@ def gridToRoadnet(rowNumber, columnNumber, rowDistances, columnDistances, outRow
             SNLaneLinks = set(filter(lambda x: roadLinks[x]["direction"] == 3, roadLinkIndices))
             
             tlPhases = intersection["trafficLight"]["lightphases"]
-            if not tlPlan:
+            if intersection['virtual']:
+                pass
+            elif not tlPlan:
                 tlPhases.append({
                     "time": 5,
                     "availableRoadLinks": rightLaneLinks
