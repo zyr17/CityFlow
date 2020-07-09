@@ -48,9 +48,16 @@ int main(int argc, char const *argv[]) {
     double dummy = 0;
     time(&startTime);
     std::vector<std::string> vec = { "road_0", "road_1" };
+    for (auto& i : engine.getDirectionChangeLanes()) std::cout << i.first << '\n';
+    engine.setLaneDirection("road_1_2_3_1", "turn_left");
     for (int i = 0; i < totalStep; i++) {
         if (verbose) {
             std::cout << i << " " << engine.getVehicleCount() << std::endl;
+        }
+        if (i % 1000 == 0) {
+            std::string d = i % 2000 ? "go_straight" : "turn_left";
+            engine.setLaneDirection("road_0_1_0_1", d);
+            engine.setLaneDirection("road_1_2_3_0", d);
         }
         //neverStopRandomSpeed(engine, vec);
         engine.nextStep();
