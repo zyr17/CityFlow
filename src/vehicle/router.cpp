@@ -30,7 +30,8 @@ namespace CityFlow {
         //GTest code over
 
         if (route.size() == 1) {
-            return selectLane(nullptr, lanes);
+            auto res = selectLane(nullptr, lanes);
+            return res;
         } else {
             std::vector<Lane *> candidateLanes;
             for (auto lane : lanes) {

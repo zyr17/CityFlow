@@ -107,6 +107,7 @@ namespace CityFlow {
         }
         if (buffer.isDisSet) {
             controllerInfo.dis = buffer.dis;
+            routeLength += buffer.deltaDis;
             buffer.isDisSet = false;
         }
         if (buffer.isSpeedSet) {
@@ -458,5 +459,12 @@ namespace CityFlow {
         info["route"] = route;
 
         return info;
+    }
+    double Vehicle::getExpectedTime() const {
+        double maxSpeed = vehicleInfo.maxSpeed;
+        double acc = vehicleInfo.maxPosAcc;
+        double accDist = maxSpeed * maxSpeed / acc / 2;
+        if (accDist > routeLength) return sqrt(2 * routeLength / acc);
+        return maxSpeed / acc + (routeLength - accDist) / maxSpeed;
     }
 }

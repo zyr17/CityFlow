@@ -28,6 +28,7 @@ PYBIND11_MODULE(cityflow, m) {
         .def("get_leader", &CityFlow::Engine::getLeader, "vehicle_id"_a)
         .def("get_current_time", &CityFlow::Engine::getCurrentTime)
         .def("get_average_travel_time", &CityFlow::Engine::getAverageTravelTime)
+        .def("get_average_delay", &CityFlow::Engine::getAverageDelay)
         .def("get_direction_change_lanes", &CityFlow::Engine::getDirectionChangeLanes)
         .def("get_direction_change_lane_direction", &CityFlow::Engine::getDirectionChangeLaneDirection, "lane"_a)
         .def("set_tl_phase", &CityFlow::Engine::setTrafficLightPhase, "intersection_id"_a, "phase_id"_a)

@@ -323,7 +323,11 @@ namespace CityFlow {
                     if (!vehicle->getLaneChange()->hasFinished()) {
                         vehicleMap.erase(vehicle->getId());
                         finishedVehicleCnt += 1;
-                        cumulativeTravelTime += getCurrentTime() - vehicle->getEnterTime();
+                        double et = vehicle->getExpectedTime();
+                        double rt = getCurrentTime() - vehicle->getEnterTime();
+                        cumulativeTravelTime += rt;
+                        assert(rt >= et);
+                        cumulativeDelay += rt - et;
                     }
                     auto iter = vehiclePool.find(vehicle->getPriority());
                     threadVehiclePool[iter->second.second].erase(vehicle);
@@ -774,11 +778,27 @@ namespace CityFlow {
         double tt = cumulativeTravelTime;
         int n = finishedVehicleCnt;
         for (auto &vehicle_pair : vehiclePool) {
+            break; // don't calculate cars not finished for their biased low travel time
             auto &vehicle = vehicle_pair.second.first;
             tt += getCurrentTime() - vehicle->getEnterTime();
             n++;
         }
         return n == 0 ? 0 : tt / n;
+    }
+
+    double Engine::getAverageDelay() const{
+        double d = cumulativeDelay;
+        int n = finishedVehicleCnt;
+        for (auto &vehicle_pair : vehiclePool) {
+            break; // don't calculate cars not finished for their incorrect delay
+            auto &vehicle = vehicle_pair.second.first;
+            double et = vehicle->getExpectedTime();
+            double rt = getCurrentTime() - vehicle->getEnterTime();
+            assert(rt >= et);
+            d += rt - et;
+            n++;
+        }
+        return n == 0 ? 0 : d / n;
     }
 
     void Engine::pushVehicle(const std::map<std::string, double> &info, const std::vector<std::string> &roads) {
@@ -841,6 +861,7 @@ namespace CityFlow {
 
         finishedVehicleCnt = 0;
         cumulativeTravelTime = 0;
+        cumulativeDelay = 0;
 
         for (auto &flow : flows) flow.reset();
         step = 0;

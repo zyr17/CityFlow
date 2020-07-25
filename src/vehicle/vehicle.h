@@ -103,6 +103,7 @@ namespace CityFlow {
         int priority;
         std::string id;
         double enterTime;
+        mutable double routeLength = 0;
 
         Engine *engine;
 
@@ -367,6 +368,7 @@ namespace CityFlow {
 
         std::map<std::string, std::string> getInfo() const;
 
+        double getExpectedTime() const;
      };
 
 }

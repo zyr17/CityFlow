@@ -57,6 +57,7 @@ namespace CityFlow {
 
         int finishedVehicleCnt = 0;
         double cumulativeTravelTime = 0;
+        double cumulativeDelay = 0;
 
         std::string nowRoadnetLogFile;
         std::string nowReplayLogFile;
@@ -165,6 +166,8 @@ namespace CityFlow {
         double getCurrentTime() const;
 
         double getAverageTravelTime() const;
+
+        double getAverageDelay() const;
 
         void setTrafficLightPhase(const std::string &id, int phaseIndex);
 
