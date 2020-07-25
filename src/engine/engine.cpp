@@ -720,6 +720,26 @@ namespace CityFlow {
         return ret;
     }
 
+    std::vector<int> Engine::getRoadLinkWaitingVehicleCount(const std::string& intersectionId, int roadLinkIdx) const {
+        std::vector<int> ret;
+        auto lane_waiting = getLaneWaitingVehicleCount();
+        ret.resize(4);
+        auto &roadlink = roadnet.getIntersectionById(intersectionId)->getRoadLinks()[roadLinkIdx];
+        std::set<Lane*> start, end;
+        for (auto& lanelink : roadlink.getLaneLinks()) {
+            if (!lanelink.isActivated()) continue;
+            start.insert(lanelink.getStartLane());
+            end.insert(lanelink.getEndLane());
+        }
+        ret[1] = start.size();
+        ret[3] = end.size();
+        for (auto& i : start)
+            ret[0] += lane_waiting[i->getId()];
+        for (auto& i : end)
+            ret[2] += lane_waiting[i->getId()];
+        return ret;
+    }
+
     std::map<std::string, int> Engine::getLaneVehicleCount() const {
         std::map<std::string, int> ret;
         for (const Lane *lane : roadnet.getLanes()) {
