@@ -3,7 +3,7 @@ import json
 import os
 from generate_json_from_grid import gridToRoadnet
 
-# python generate_grid_scenario.py 1 1 --numRightLanes 0 --numStraightLanes 2 --directionChange 1,1,S,110,010 --directionChange 1,1,E,110,110
+# python generate_grid_scenario.py 1 1 --turn --interval 4 --numRightLanes 0 --numStraightLanes 2 --directionChange 1,1,S,110,010
 
 def parse_args():
     parser = argparse.ArgumentParser()

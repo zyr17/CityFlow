@@ -487,6 +487,7 @@ namespace CityFlow {
                 if (vehicle->isRouteValid()) {
                     vehicle->setFirstDrivable();
                     vehicle->getCurLane()->pushWaitingVehicle(vehicle);
+                    LOG("ADD    " + vehicle->getId() + ' ' + vehicle->getCurLane()->getId());
                 }else {
                     Flow *flow = vehicle->getFlow();
                     if (flow) flow->setValid(false);

@@ -229,6 +229,7 @@ namespace CityFlow{
         Lane *lane = static_cast<Lane *>(drivable);
         Router& router = vehicle->controllerInfo.router;
         if (router.onLastRoad() || router.getNextDrivable(lane)) {
+            //return;
             SimpleLaneChange::makeSignal(interval);
             return;
         }
