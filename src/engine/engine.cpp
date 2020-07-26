@@ -798,7 +798,6 @@ namespace CityFlow {
         double tt = cumulativeTravelTime;
         int n = finishedVehicleCnt;
         for (auto &vehicle_pair : vehiclePool) {
-            break; // don't calculate cars not finished for their biased low travel time
             auto &vehicle = vehicle_pair.second.first;
             tt += getCurrentTime() - vehicle->getEnterTime();
             n++;
@@ -810,7 +809,6 @@ namespace CityFlow {
         double d = cumulativeDelay;
         int n = finishedVehicleCnt;
         for (auto &vehicle_pair : vehiclePool) {
-            break; // don't calculate cars not finished for their incorrect delay
             auto &vehicle = vehicle_pair.second.first;
             double et = vehicle->getExpectedTime();
             double rt = getCurrentTime() - vehicle->getEnterTime();
