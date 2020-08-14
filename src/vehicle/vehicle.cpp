@@ -17,7 +17,7 @@ namespace CityFlow {
           laneChangeInfo(vehicle.laneChangeInfo), buffer(vehicle.buffer), priority(vehicle.priority),
           id(vehicle.id), engine(vehicle.engine),
           laneChange(std::make_shared<InvalidLaneLaneChange>(this, *vehicle.laneChange)),
-          flow(flow){
+          flow(flow), drivableCount(vehicle.drivableCount){
         enterTime = vehicle.enterTime;
     }
 
@@ -25,7 +25,7 @@ namespace CityFlow {
         : vehicleInfo(vehicle.vehicleInfo), controllerInfo(this, vehicle.controllerInfo),
           laneChangeInfo(vehicle.laneChangeInfo), buffer(vehicle.buffer), 
           id(id), engine(engine), laneChange(std::make_shared<InvalidLaneLaneChange>(this)),
-          flow(flow){
+          flow(flow), drivableCount(vehicle.drivableCount) {
         while (engine->checkPriority(priority = engine->rnd()));
         controllerInfo.router.setVehicle(this);
         enterTime = vehicle.enterTime;
@@ -137,6 +137,13 @@ namespace CityFlow {
             buffer.notifiedVehicles.clear();
             buffer.isNotifiedVehicles = false;
         }
+		if (drivableCount.size() 
+			&& (drivableCount.rbegin()->first == controllerInfo.drivable
+				|| drivableCount.rbegin()->first->isLane() 
+				   && controllerInfo.drivable->isLane()
+				   && ((Lane*)drivableCount.rbegin()->first)->getBelongRoad() == ((Lane*)controllerInfo.drivable)->getBelongRoad()))
+			drivableCount.rbegin()->second++;
+		else drivableCount.push_back(std::make_pair(controllerInfo.drivable, 1));
     }
 
 
@@ -460,11 +467,26 @@ namespace CityFlow {
 
         return info;
     }
-    double Vehicle::getExpectedTime() const {
+    
+	double Vehicle::getExpectedTime(double routeLength) const {
+		if (routeLength == -1) routeLength = this->routeLength;
         double maxSpeed = vehicleInfo.maxSpeed;
         double acc = vehicleInfo.maxPosAcc;
         double accDist = maxSpeed * maxSpeed / acc / 2;
         if (accDist > routeLength) return sqrt(2 * routeLength / acc);
         return maxSpeed / acc + (routeLength - accDist) / maxSpeed;
     }
+	
+	void Vehicle::updateRoadDelay() const {
+		double prevLength = 0;
+		for (auto &i : drivableCount) {
+			if (i.first == nullptr) continue;
+			if (i.first->isLane()) {
+				Lane *l = (Lane*)i.first;
+				l->getBelongRoad()->addDelay(i.second * engine->getInterval() - (getExpectedTime(l->getLength() + prevLength) - getExpectedTime(prevLength)));
+			}
+			prevLength += i.first->getLength();
+		}
+		drivableCount.clear();
+	}
 }

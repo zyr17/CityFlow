@@ -104,6 +104,7 @@ namespace CityFlow {
         std::string id;
         double enterTime;
         mutable double routeLength = 0;
+		mutable std::vector<std::pair<Drivable *, int>> drivableCount;
 
         Engine *engine;
 
@@ -368,7 +369,9 @@ namespace CityFlow {
 
         std::map<std::string, std::string> getInfo() const;
 
-        double getExpectedTime() const;
+        double getExpectedTime(double routeLength = -1) const;
+
+		void updateRoadDelay() const;
      };
 
 }

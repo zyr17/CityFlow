@@ -682,6 +682,8 @@ FOUND:;
 
     void Road::reset() {
         for (auto &lane : lanes) lane.reset();
+		delay = 0;
+		delayCount = 0;
     }
 
     void Road::buildSegmentationByInterval(double interval) {
@@ -1009,6 +1011,12 @@ FOUND:;
                 res.push_back(RoadLinkType(i));
         return res;
     }
+
+	void Road::addDelay(double in_delay) {
+		if (in_delay <= 0) return;
+		delay += in_delay;
+		delayCount++;
+	}
 
 }
 

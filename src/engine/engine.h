@@ -171,6 +171,8 @@ namespace CityFlow {
 
         double getAverageDelay() const;
 
+		std::map<std::string, double> getRoadAverageDelay() const;
+
         void setTrafficLightPhase(const std::string &id, int phaseIndex);
 
         void setReplayLogFile(const std::string &logFile);

@@ -184,6 +184,9 @@ namespace CityFlow {
 
         void initLanesPoints();
 
+		double delay = 0;
+		int delayCount = 0;
+
     public:
         std::string getId() const { return id; }
 
@@ -224,6 +227,10 @@ namespace CityFlow {
         void clearPlanRouteBuffer() {
             planRouteBuffer.clear();
         }
+
+		void addDelay(double delay);
+
+		double getAverageDelay() const { return delayCount ? delay / delayCount : 0; }
     };
 
     class Drivable {

@@ -320,13 +320,14 @@ namespace CityFlow {
                 if (vehicle->hasSetEnd()) {
                     std::lock_guard<std::mutex> guard(lock);
                     vehicleRemoveBuffer.insert(vehicle);
-                    if (!vehicle->getLaneChange()->hasFinished()) {
+                    if (!vehicle->getLaneChange()->hasFinished() && vehicle->getId().back() != 'w') {
+						vehicle->updateRoadDelay();
                         vehicleMap.erase(vehicle->getId());
                         finishedVehicleCnt += 1;
                         double et = vehicle->getExpectedTime();
                         double rt = getCurrentTime() - vehicle->getEnterTime();
                         cumulativeTravelTime += rt;
-                        assert(rt >= et);
+                        assert(rt >= et - 1e-2);
                         cumulativeDelay += rt - et;
                     }
                     auto iter = vehiclePool.find(vehicle->getPriority());
@@ -812,12 +813,23 @@ namespace CityFlow {
             auto &vehicle = vehicle_pair.second.first;
             double et = vehicle->getExpectedTime();
             double rt = getCurrentTime() - vehicle->getEnterTime();
-            assert(rt >= et);
+            assert(rt >= et - 1e-2);
             d += rt - et;
             n++;
         }
         return n == 0 ? 0 : d / n;
     }
+
+	std::map<std::string, double> Engine::getRoadAverageDelay() const {
+		std::map<std::string, double> res;
+		for (auto &vehicle_pair : vehiclePool) {
+			auto &vehicle = vehicle_pair.second.first;
+			vehicle->updateRoadDelay();
+		}
+		for (auto &i : roadnet.getRoads())
+			res[i.getId()] = i.getAverageDelay();
+		return res;
+	}
 
     void Engine::pushVehicle(const std::map<std::string, double> &info, const std::vector<std::string> &roads) {
         VehicleInfo vehicleInfo;
