@@ -157,6 +157,8 @@ namespace CityFlow {
 
         std::map<std::string, int> getLaneWaitingVehicleCount() const;
 
+        inline int getLaneWaitingVehicleCountOne(const Lane *lane) const;
+
         std::map<std::string, std::vector<std::string>> getLaneVehicles();
 
         std::map<std::string, double> getVehicleSpeed() const;

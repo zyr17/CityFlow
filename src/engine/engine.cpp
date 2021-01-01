@@ -723,7 +723,6 @@ namespace CityFlow {
 
     std::vector<int> Engine::getRoadLinkWaitingVehicleCount(const std::string& intersectionId, int roadLinkIdx) const {
         std::vector<int> ret;
-        auto lane_waiting = getLaneWaitingVehicleCount();
         ret.resize(4);
         auto &roadlink = roadnet.getIntersectionById(intersectionId)->getRoadLinks()[roadLinkIdx];
         std::set<Lane*> start, end;
@@ -735,9 +734,9 @@ namespace CityFlow {
         ret[1] = start.size();
         ret[3] = end.size();
         for (auto& i : start)
-            ret[0] += lane_waiting[i->getId()];
+            ret[0] += getLaneWaitingVehicleCountOne(i);
         for (auto& i : end)
-            ret[2] += lane_waiting[i->getId()];
+            ret[2] += getLaneWaitingVehicleCountOne(i);
         return ret;
     }
 
@@ -761,6 +760,16 @@ namespace CityFlow {
             ret.emplace(lane->getId(), cnt);
         }
         return ret;
+    }
+
+    inline int Engine::getLaneWaitingVehicleCountOne(const Lane *lane) const {
+        int cnt = 0;
+        for (Vehicle *vehicle : lane->getVehicles()) {
+            if (vehicle->getSpeed() < 0.1) { //TODO: better waiting critera
+                cnt += 1;
+            }
+        }
+        return cnt;
     }
 
     std::map<std::string, std::vector<std::string>> Engine::getLaneVehicles() {
